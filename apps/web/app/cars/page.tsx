@@ -1,0 +1,6 @@
+import Link from 'next/link'
+import { ArrowRight, Search } from 'lucide-react'
+
+export default function CarsPage() {
+  return <main className="koc-shell"><section style={{background:'#111',color:'#fff',padding:'92px 0'}}><div className="koc-container"><div className="koc-kicker" style={{color:'#e33a48'}}>King of Cars showroom</div><h1 className="koc-display" style={{fontSize:'clamp(48px,7vw,88px)',marginTop:14}}>Find your<br/><span style={{color:'#e33a48'}}>next car.</span></h1><p style={{maxWidth:650,marginTop:20,color:'rgba(255,255,255,.65)',lineHeight:1.7}}>This showroom is wired as the foundation for the live Supabase vehicle inventory.</p></div></section><section style={{padding:'50px 0 90px'}}><div className="koc-container"><div className="koc-card" style={{padding:22,display:'flex',alignItems:'center',gap:12}}><Search size={18} color="var(--koc-red)"/><span style={{color:'var(--koc-muted)',fontSize:13}}>Vehicle search and live inventory will connect here.</span></div><div style={{marginTop:24,display:'flex',gap:12,flexWrap:'wrap'}}><Link href="/contact" className="koc-button koc-button-primary">Ask about a vehicle <ArrowRight size={15}/></Link><Link href="/" className="koc-button" style={{border:'1px solid var(--koc-line)'}}>Back home</Link></div></div></section></main>
+}
