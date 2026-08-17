@@ -1,0 +1,19 @@
+{
+  "name": "kings-of-cars",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.9",
+  "engines": { "node": "22.x" },
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build --concurrency=1",
+    "start": "turbo run start",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "dev:web": "pnpm --filter @kings-of-cars/web dev",
+    "dev:admin": "pnpm --filter @kings-of-cars/admin dev",
+    "build:web": "pnpm --filter @kings-of-cars/web build",
+    "build:admin": "pnpm --filter @kings-of-cars/admin build"
+  },
+  "devDependencies": { "turbo": "^2.5.6" }
+}
