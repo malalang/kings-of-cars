@@ -12,13 +12,13 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "typecheck": "turbo run typecheck",
-    "dev:client": "pnpm --filter @kings-of-cars/client dev",
+    "dev:web": "pnpm --filter @kings-of-cars/web dev",
     "dev:admin": "pnpm --filter @kings-of-cars/admin dev",
-    "build:client": "pnpm --filter @kings-of-cars/client build",
+    "build:web": "pnpm --filter @kings-of-cars/web build",
     "build:admin": "pnpm --filter @kings-of-cars/admin build",
-    "lint:client": "pnpm --filter @kings-of-cars/client lint",
+    "lint:web": "pnpm --filter @kings-of-cars/web lint",
     "lint:admin": "pnpm --filter @kings-of-cars/admin lint",
-    "typecheck:client": "pnpm --filter @kings-of-cars/client typecheck",
+    "typecheck:web": "pnpm --filter @kings-of-cars/web typecheck",
     "typecheck:admin": "pnpm --filter @kings-of-cars/admin typecheck"
   },
   "devDependencies": {
