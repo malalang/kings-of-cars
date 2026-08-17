@@ -8,12 +8,21 @@
     "dev": "turbo run dev --parallel",
     "build": "turbo run build --concurrency=1",
     "start": "turbo run start",
-    "lint": "turbo run lint",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
     "typecheck": "turbo run typecheck",
-    "dev:web": "pnpm --filter @kings-of-cars/web dev",
+    "dev:client": "pnpm --filter @kings-of-cars/client dev",
     "dev:admin": "pnpm --filter @kings-of-cars/admin dev",
-    "build:web": "pnpm --filter @kings-of-cars/web build",
-    "build:admin": "pnpm --filter @kings-of-cars/admin build"
+    "build:client": "pnpm --filter @kings-of-cars/client build",
+    "build:admin": "pnpm --filter @kings-of-cars/admin build",
+    "lint:client": "pnpm --filter @kings-of-cars/client lint",
+    "lint:admin": "pnpm --filter @kings-of-cars/admin lint",
+    "typecheck:client": "pnpm --filter @kings-of-cars/client typecheck",
+    "typecheck:admin": "pnpm --filter @kings-of-cars/admin typecheck"
   },
-  "devDependencies": { "turbo": "^2.5.6" }
+  "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "turbo": "catalog:"
+  }
 }
