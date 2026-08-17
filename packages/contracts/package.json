@@ -1,0 +1,21 @@
+{
+  "name": "@kings-of-cars/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    "./actionResult": "./src/actionResult.ts",
+    "./car": "./src/car.ts",
+    "./contact": "./src/contact.ts",
+    "./env": "./src/env.ts",
+    "./finance": "./src/finance.ts",
+    "./lead": "./src/lead.ts",
+    "./media": "./src/media.ts",
+    "./revalidation": "./src/revalidation.ts"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}
