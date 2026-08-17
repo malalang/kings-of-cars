@@ -2,6 +2,21 @@
   "name": "@kings-of-cars/supabase",
   "version": "0.1.0",
   "private": true,
-  "exports": { "./*": "./src/*.ts" },
-  "dependencies": { "@supabase/ssr": "^0.6.1", "@supabase/supabase-js": "^2.49.1" }
+  "exports": {
+    "./client": "./src/client.ts",
+    "./server": "./src/server.ts",
+    "./middleware": "./src/middleware.ts",
+    "./cache": "./src/cache.ts",
+    "./supabaseType": "./src/supabaseType.ts",
+    "./Queries/cars": "./src/Queries/cars.ts",
+    "./Mutations/cars": "./src/Mutations/cars.ts",
+    "./Mutations/leads": "./src/Mutations/leads.ts"
+  },
+  "dependencies": {
+    "@supabase/ssr": "latest",
+    "@supabase/supabase-js": "latest"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
 }
