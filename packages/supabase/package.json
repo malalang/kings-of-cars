@@ -1,0 +1,7 @@
+{
+  "name": "@kings-of-cars/supabase",
+  "version": "0.1.0",
+  "private": true,
+  "exports": { "./*": "./src/*.ts" },
+  "dependencies": { "@supabase/ssr": "^0.6.1", "@supabase/supabase-js": "^2.49.1" }
+}
