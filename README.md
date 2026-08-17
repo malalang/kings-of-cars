@@ -4,14 +4,12 @@ A production-oriented dealership platform built as an independent Malalang-manag
 
 ## Monorepo
 
-- `apps/client` — public server-rendered customer website (canonical target)
+- `apps/client` — public server-rendered customer website (canonical)
 - `apps/admin` — authenticated dealership operations
 - `packages/contracts` — shared application contracts and runtime validation
 - `packages/supabase` — Supabase client/server/cache/types, queries and mutations
 - `packages/config` — shared tooling configuration
 - `docs` — architecture and engineering documentation
-
-`apps/web` is the current transitional public-app location and will be retired as the public app is migrated to the canonical `apps/client` structure.
 
 ## Public experience
 
