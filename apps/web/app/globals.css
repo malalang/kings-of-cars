@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --koc-red: #b10f1b;
+  --koc-dark: #111111;
+  --koc-sand: #f2f0eb;
+  --koc-line: #dedbd4;
+  --koc-muted: #6c6a66;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--koc-sand); color: var(--koc-dark); font-family: Arial, Helvetica, sans-serif; }
+a { color: inherit; text-decoration: none; }
+button, input, select, textarea { font: inherit; }
+
+.koc-shell { min-height: 100vh; background: var(--koc-sand); }
+.koc-container { width: min(1200px, calc(100% - 40px)); margin: 0 auto; }
+.koc-kicker { font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--koc-red); }
+.koc-display { font-weight: 900; letter-spacing: -.04em; line-height: .95; text-transform: uppercase; }
+.koc-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 20px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.koc-button-primary { background: var(--koc-red); color: white; }
+.koc-button-light { background: white; color: var(--koc-dark); }
+.koc-card { background: white; border: 1px solid var(--koc-line); }
+
+@media (max-width: 640px) {
+  .koc-container { width: min(100% - 28px, 1200px); }
+}
