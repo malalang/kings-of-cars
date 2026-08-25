@@ -1,7 +1,8 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, Menu, Phone, X } from 'lucide-react'
+import { Heart, Mail, Menu, Phone, X } from 'lucide-react'
 import { useState } from 'react'
 
 const nav = [
@@ -24,14 +25,18 @@ export function SiteHeader() {
             <span aria-hidden="true">|</span>
             <a href="https://www.kingofcarspremium.co.za/" target="_blank" rel="noreferrer">Pre-Owned Premium</a>
           </div>
-          <Link href="/cars" className="koc-wishlist"><Heart size={14} /> Wishlist</Link>
+          <div className="koc-header-contact">
+            <a href="tel:+27119000000"><Phone size={13} /> 011 900 0000</a>
+            <a href="mailto:info@kingofcars.co.za"><Mail size={13} /> info@kingofcars.co.za</a>
+            <Link href="/cars" className="koc-wishlist"><Heart size={14} /> Wishlist</Link>
+          </div>
         </div>
       </div>
 
       <div className="koc-header-main">
         <div className="koc-container koc-header-main-inner">
           <Link href="/" className="koc-brand" aria-label="King of Cars home">
-            <span>King</span><b>of</b><span>Cars</span>
+            <Image src="/logo.png" alt="King of Cars" width={180} height={64} priority className="koc-logo" />
           </Link>
           <nav className="koc-desktop-nav" aria-label="Main navigation">
             {nav.map((item) => <Link key={item.href} href={item.href}>{item.label}</Link>)}
@@ -47,6 +52,8 @@ export function SiteHeader() {
 
       {open && <nav className="koc-mobile-nav" aria-label="Mobile navigation">
         {nav.map((item) => <Link key={item.href} href={item.href} onClick={() => setOpen(false)}>{item.label}</Link>)}
+        <a href="tel:+27119000000" onClick={() => setOpen(false)}><Phone size={15} /> 011 900 0000</a>
+        <a href="mailto:info@kingofcars.co.za" onClick={() => setOpen(false)}><Mail size={15} /> info@kingofcars.co.za</a>
         <Link href="/cars" onClick={() => setOpen(false)}><Heart size={15} /> Wishlist</Link>
       </nav>}
     </header>
