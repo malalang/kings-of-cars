@@ -1,13 +1,219 @@
+import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, CarFront, CreditCard, HandCoins, MapPin } from 'lucide-react'
+import { CarFront, Cog, FileText } from 'lucide-react'
 
-const actions = [
-  { title: 'All Vehicles', copy: 'Explore our current pre-owned inventory.', href: '/cars', icon: CarFront },
-  { title: 'Sell Your Car', copy: 'Get advice on the smart way to sell your vehicle.', href: '/sell-your-car', icon: HandCoins },
-  { title: 'Finance Solution', copy: 'Get guidance on financing your next vehicle.', href: '/finance', icon: CreditCard },
-  { title: 'Value Added Products', copy: 'Explore products designed around your ownership journey.', href: '/value-added-products', icon: ArrowRight },
+const ctaRows = [
+  [
+    { title: 'Sell Your Car', href: '/sell-your-car', image: '/images/home/cta-sell-your-car.jpg', Icon: CarFront },
+    { title: 'All Vehicles', href: '/cars', image: '/images/home/cta-all-vehicles.jpg', Icon: CarFront },
+  ],
+  [
+    { title: 'Finance Solution', href: '/finance', image: '/images/home/cta-finance.jpg', Icon: FileText },
+    { title: 'Value Added Products', href: '/value-added-products', image: '/images/home/cta-value-added-products.jpg', Icon: Cog },
+  ],
 ]
 
 export default function HomePage() {
-  return <main className="koc-shell"><section style={{ position: 'relative', overflow: 'hidden', background: '#1a1a1a', color: '#fff', minHeight: 620, display: 'flex', alignItems: 'center' }}><div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 78% 18%, rgba(177,15,27,.36), transparent 34%), linear-gradient(110deg,#111 0%,#1b1b1b 50%,#2a2a2a 100%)' }} /><div className="koc-container" style={{ position: 'relative', padding: '100px 0' }}><div style={{ maxWidth: 760 }}><div className="koc-kicker" style={{ color: '#e33a48' }}>20 years of motor industry experience</div><h1 className="koc-display" style={{ fontSize: 'clamp(52px,8vw,108px)', margin: '18px 0 0' }}>Quality cars.<br /><span style={{ color: '#e33a48' }}>Straightforward.</span></h1><p style={{ maxWidth: 670, marginTop: 28, color: 'rgba(255,255,255,.72)', fontSize: 18, lineHeight: 1.65 }}>Welcome to King of Cars. Browse quality used vehicles, get help with finance, or let our team guide you through selling your car.</p><div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 34 }}><Link className="koc-button koc-button-primary" href="/cars">Browse vehicles <ArrowRight size={15} /></Link><Link className="koc-button koc-button-light" href="/contact">Contact us <MapPin size={15} /></Link></div></div></div></section><section style={{ padding: '78px 0' }}><div className="koc-container"><div style={{ maxWidth: 720 }}><div className="koc-kicker">How can we help?</div><h2 className="koc-display" style={{ fontSize: 'clamp(38px,5vw,68px)', marginTop: 12 }}>Your motoring needs.<br />One team.</h2><p style={{ marginTop: 18, color: 'var(--koc-muted)', maxWidth: 700, lineHeight: 1.75 }}>From finding your next vehicle to selling your current one, King of Cars offers advice and assistance across the journey.</p></div><div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0,1fr))', gap: 14, marginTop: 38 }}>{actions.map(({ title, copy, href, icon: Icon }) => <Link key={title} href={href} className="koc-card" style={{ padding: 24, minHeight: 215, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}><div><Icon size={24} color="var(--koc-red)" /><h3 style={{ fontSize: 18, fontWeight: 900, marginTop: 28 }}>{title}</h3><p style={{ marginTop: 10, color: 'var(--koc-muted)', fontSize: 13, lineHeight: 1.6 }}>{copy}</p></div><div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 22, fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Find out more <ArrowRight size={13} /></div></Link>)}</div></div></section><section style={{ background: '#111', color: '#fff', padding: '74px 0' }}><div className="koc-container" style={{ display: 'grid', gridTemplateColumns: '1.1fr .9fr', gap: 48, alignItems: 'center' }}><div><div className="koc-kicker" style={{ color: '#e33a48' }}>King of Cars Trichardts Road</div><h2 className="koc-display" style={{ fontSize: 'clamp(38px,5vw,68px)', marginTop: 12 }}>Boksburg.<br />Ready to assist.</h2><p style={{ marginTop: 20, color: 'rgba(255,255,255,.6)', lineHeight: 1.7 }}>Our experienced team is here to help with your vehicle search, finance questions and selling journey.</p><Link href="/contact" className="koc-button koc-button-primary" style={{ marginTop: 26 }}>Visit / Contact <ArrowRight size={15} /></Link></div><div style={{ border: '1px solid rgba(255,255,255,.12)', padding: 28 }}><MapPin color="#e33a48" /><div style={{ marginTop: 16, fontSize: 14, fontWeight: 800 }}>Trichardts Road, Boksburg</div><div style={{ marginTop: 8, color: 'rgba(255,255,255,.55)', fontSize: 13, lineHeight: 1.6 }}>A dedicated dealership team helping customers across their motoring needs.</div><Link href="/contact" style={{ display: 'inline-flex', marginTop: 22, color: '#e33a48', fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Get in touch <ArrowRight size={13} style={{ marginLeft: 8 }} /></Link></div></div></section></main>
+  return (
+    <main className="koc-home">
+      <section className="koc-hero">
+        <Image
+          src="/HeroSection.png"
+          alt="King of Cars — AA Certified Pre-Owned, a brand you can trust"
+          fill
+          priority
+          sizes="100vw"
+          style={{ objectFit: 'cover' }}
+        />
+      </section>
+
+      <section className="koc-intro">
+        <div className="koc-wide">
+          <div className="koc-intro-heading">
+            <div className="koc-intro-block">
+              <Link href="/cars" className="koc-intro-tile" title="Pre-Owned Trichardts Road">
+                <Image
+                  src="/images/home/intro-preowned-trichardts.jpg"
+                  alt="Preowned cars"
+                  fill
+                  sizes="170px"
+                  style={{ objectFit: 'cover' }}
+                />
+                <span>
+                  Pre-Owned
+                  <br />
+                  Trichardts Road
+                </span>
+              </Link>
+              <a
+                href="https://www.kingofcarspremium.co.za/used-vehicles"
+                target="_blank"
+                rel="noreferrer"
+                className="koc-intro-tile"
+                title="Pre-Owned Premium"
+              >
+                <Image
+                  src="/images/home/intro-preowned-premium.jpg"
+                  alt="Used models"
+                  fill
+                  sizes="170px"
+                  style={{ objectFit: 'cover' }}
+                />
+                <span>
+                  Pre-Owned
+                  <br />
+                  Premium
+                </span>
+              </a>
+            </div>
+
+            <div className="koc-intro-title">
+              <span>Welcome to</span>
+              <div className="koc-divider" />
+              <h1>King of Cars</h1>
+            </div>
+
+            <div className="koc-intro-block">
+              <Link href="/sell-your-car" className="koc-intro-tile" title="Sell your car">
+                <Image
+                  src="/images/home/intro-sell-your-car.jpg"
+                  alt="Sell your car"
+                  fill
+                  sizes="170px"
+                  style={{ objectFit: 'cover' }}
+                />
+                <span>
+                  Sell
+                  <br />
+                  Your Car
+                </span>
+              </Link>
+              <Link href="/contact" className="koc-intro-tile" title="Contact Us">
+                <Image
+                  src="/images/home/intro-contact-us.jpg"
+                  alt="Contact"
+                  fill
+                  sizes="170px"
+                  style={{ objectFit: 'cover' }}
+                />
+                <span>
+                  Contact
+                  <br />
+                  Us
+                </span>
+              </Link>
+            </div>
+          </div>
+
+          <div className="koc-intro-copy">
+            <p>
+              With 20 years of success in the motor industry, we are a buyer and seller of quality
+              used vehicles. With our wide range of experience and skills, we are well equipped to
+              assist you with your every need. We offer advice and assistance to all our clients,
+              from suggestions on financial solutions to the smart way to buy or sell your vehicle.
+            </p>
+            <p>
+              View the pre-owned cars on offer in the showroom section and find the vehicle that is
+              right for you. We have two branches in Boksburg, Premium and North Rand Road ready to
+              assist in any way possible. Visit the websites linked below or contact the branches
+              directly using the provided contact details.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="koc-branches">
+        <div className="koc-wide">
+          <div className="koc-branch-row">
+            <div className="koc-branch-img">
+              <Image
+                src="/images/home/branch-trichardts.png"
+                alt="King Of Cars Trichardts Road, Boksburg"
+                width={860}
+                height={400}
+                style={{ width: '100%', height: 'auto' }}
+              />
+            </div>
+            <div className="koc-branch-copy">
+              <h2>King of Cars Trichardts Road, Boksburg</h2>
+              <div className="koc-divider koc-divider-right" />
+              <p>
+                We have a team that is both experienced and skilled in assisting you with all of
+                your motoring needs. We offer free advice and assistance to all our clients, from
+                financial solutions to the smart way to buy or sell your vehicle. We&apos;ll help
+                you make the car of your dreams a reality! <Link href="/contact">Contact us today!</Link>
+              </p>
+            </div>
+          </div>
+
+          <div className="koc-branch-row">
+            <div className="koc-branch-copy">
+              <h2>King of Cars Premium</h2>
+              <div className="koc-divider koc-divider-left" />
+              <p>
+                Offering you a wide selection of amazing used cars, King of Cars Premium is here to
+                help you achieve all your motoring needs. Our team will make sure that you receive
+                the dedicated service that you deserve.{' '}
+                <a href="https://www.kingofcarspremium.co.za/contact-us" target="_blank" rel="noreferrer">
+                  Contact us today!
+                </a>
+              </p>
+            </div>
+            <div className="koc-branch-img">
+              <Image
+                src="/images/home/branch-premium.png"
+                alt="Contact us today"
+                width={860}
+                height={400}
+                style={{ width: '100%', height: 'auto' }}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="koc-help">
+        <div className="koc-wide">
+          <div className="koc-help-head">
+            <h2>How can we help?</h2>
+            <div className="koc-divider" />
+            <p>
+              King of Cars is here to take care of all your motoring needs. We offer advice and
+              assistance to all our clients, from suggestions on financial solutions to the smart
+              way to buy or sell your vehicle.
+            </p>
+          </div>
+          {ctaRows.map((row, rowIndex) => (
+            <div className="koc-help-row" key={rowIndex}>
+              {row.map(({ title, href, image, Icon }) => (
+                <div className="koc-help-box" key={title}>
+                  <Link href={href} className="koc-help-box-link" title={title}>
+                    <span className="koc-help-box-img" style={{ backgroundImage: `url(${image})` }} />
+                    <span className="koc-help-box-content">
+                      <Icon />
+                      <span className="copy">{title}</span>
+                      <span className="copy-cta">Find Out More</span>
+                    </span>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="koc-news">
+        <div className="koc-wide">
+          <div className="koc-help-head">
+            <h2>Motoring News</h2>
+            <div className="koc-divider" />
+            <p>Read the latest motoring news on our website by clicking an article below.</p>
+          </div>
+          <Link href="/articles" className="koc-button koc-button-primary">
+            View Articles
+          </Link>
+        </div>
+      </section>
+    </main>
+  )
 }
