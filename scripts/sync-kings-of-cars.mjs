@@ -1,24 +1,9 @@
 #!/usr/bin/env node
 
-/**
- * Browser-backed King of Cars inventory sync.
- *
- * The Boksburg inventory is rendered by the public site's JavaScript widgets,
- * so plain fetch/HTML parsing misses the vehicle cards. Playwright renders the
- * showroom, follows pagination, discovers every public result URL, then opens
- * each vehicle page and extracts the real ix.co.za gallery URLs.
- *
- * Required env:
- *   SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL)
- *   SUPABASE_SERVICE_ROLE_KEY
- *
- * Optional:
- *   KINGS_OF_CARS_SHOWROOM_URL
- *   KINGS_OF_CARS_MAX_PAGES (default 40)
- *   KINGS_OF_CARS_DETAIL_CONCURRENCY (default 4)
- */
+/** Full King of Cars inventory sync. Prices are intentionally stored as NULL/POA. */
 
-import { chromium } from 'playwright'
+import chromiumBinary from '@sparticuz/chromium'
+import { chromium as playwrightChromium } from 'playwright'
 import { createClient } from '@supabase/supabase-js'
 
 const SHOWROOM_URL = process.env.KINGS_OF_CARS_SHOWROOM_URL ?? 'https://www.kingofcars.co.za/boksburg-used-cars'
@@ -36,14 +21,8 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 })
 
 const clean = (value) => String(value ?? '').replace(/\s+/g, ' ').trim()
-const absolute = (href, base) => {
-  try { return new URL(href, base).toString() } catch { return null }
-}
-const slugify = (value) => clean(value)
-  .toLowerCase()
-  .replace(/&/g, ' and ')
-  .replace(/[^a-z0-9]+/g, '-')
-  .replace(/^-+|-+$/g, '')
+const absolute = (href, base) => { try { return new URL(href, base).toString() } catch { return null } }
+const slugify = (value) => clean(value).toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 
 function parseJsonLd(blocks) {
   const values = []
@@ -53,9 +32,7 @@ function parseJsonLd(blocks) {
       if (Array.isArray(parsed)) values.push(...parsed)
       else if (parsed?.['@graph']) values.push(...parsed['@graph'])
       else values.push(parsed)
-    } catch {
-      // Some pages contain malformed/empty JSON-LD blocks.
-    }
+    } catch {}
   }
   return values
 }
@@ -66,11 +43,6 @@ function vehicleJsonLd(items) {
     return type === 'Vehicle' || type === 'Car' || type === 'Product' ||
       (Array.isArray(type) && type.some((value) => ['Vehicle', 'Car', 'Product'].includes(value)))
   }) ?? null
-}
-
-function numberValue(value) {
-  const number = Number(String(value ?? '').replace(/[^0-9.]/g, ''))
-  return Number.isFinite(number) && number > 0 ? number : null
 }
 
 function integerValue(value) {
@@ -91,28 +63,16 @@ function buildVehicle({ url, title, description, jsonLdBlocks, images, text }) {
   const name = clean(item?.name || title)
   if (!name) return null
 
-  const make = clean(item?.brand?.name || item?.manufacturer?.name || item?.make ||
-    fromText(text, [/\bMake\s*[:\-]\s*([^|\n]+)/i])) || null
-  const model = clean(item?.model || item?.vehicleModel ||
-    fromText(text, [/\bModel\s*[:\-]\s*([^|\n]+)/i])) || null
-  const variant = clean(item?.vehicleConfiguration || item?.trim || item?.variant ||
-    fromText(text, [/\bVariant\s*[:\-]\s*([^|\n]+)/i])) || null
-  const year = integerValue(item?.vehicleModelDate || item?.modelDate || item?.productionDate ||
-    fromText(text, [/\b(?:Year|Model Year)\s*[:\-]\s*(20\d{2})/i]))
-  const mileage = integerValue(item?.mileageFromOdometer?.value ?? item?.mileage ??
-    fromText(text, [/\bMileage\s*[:\-]?\s*([0-9,]+)/i]))
-  const price = numberValue(item?.offers?.price ?? item?.offers?.lowPrice ?? item?.price ??
-    fromText(text, [/\b(?:Price|R)\s*[:\-]?\s*R?\s*([0-9,\.]+)/i]))
-  const transmission = clean(item?.vehicleTransmission || item?.transmission ||
-    fromText(text, [/\bTransmission\s*[:\-]\s*([^|\n]+)/i])) || null
-  const fuelType = clean(item?.fuelType ||
-    fromText(text, [/\bFuel(?: Type)?\s*[:\-]\s*([^|\n]+)/i])) || null
-  const colour = clean(item?.color || item?.colour ||
-    fromText(text, [/\bColou?r\s*[:\-]\s*([^|\n]+)/i])) || null
-  const bodyType = clean(item?.bodyType ||
-    fromText(text, [/\bBody Type\s*[:\-]\s*([^|\n]+)/i])) || null
-  const stockNumber = clean(item?.sku || item?.mpn || item?.productID ||
-    fromText(text, [/\bStock(?: Number| No\.?| #)?\s*[:#\-]?\s*([A-Z0-9\-]+)/i])) || null
+  const make = clean(item?.brand?.name || item?.manufacturer?.name || item?.make || fromText(text, [/\bMake\s*[:\-]\s*([^|\n]+)/i])) || null
+  const model = clean(item?.model || item?.vehicleModel || fromText(text, [/\bModel\s*[:\-]\s*([^|\n]+)/i])) || null
+  const variant = clean(item?.vehicleConfiguration || item?.trim || item?.variant || fromText(text, [/\bVariant\s*[:\-]\s*([^|\n]+)/i])) || null
+  const year = integerValue(item?.vehicleModelDate || item?.modelDate || item?.productionDate || fromText(text, [/\b(?:Year|Model Year)\s*[:\-]\s*(20\d{2})/i]))
+  const mileage = integerValue(item?.mileageFromOdometer?.value ?? item?.mileage ?? fromText(text, [/\bMileage\s*[:\-]?\s*([0-9,]+)/i]))
+  const transmission = clean(item?.vehicleTransmission || item?.transmission || fromText(text, [/\bTransmission\s*[:\-]\s*([^|\n]+)/i])) || null
+  const fuelType = clean(item?.fuelType || fromText(text, [/\bFuel(?: Type)?\s*[:\-]\s*([^|\n]+)/i])) || null
+  const colour = clean(item?.color || item?.colour || fromText(text, [/\bColou?r\s*[:\-]\s*([^|\n]+)/i])) || null
+  const bodyType = clean(item?.bodyType || fromText(text, [/\bBody Type\s*[:\-]\s*([^|\n]+)/i])) || null
+  const stockNumber = clean(item?.sku || item?.mpn || item?.productID || fromText(text, [/\bStock(?: Number| No\.?| #)?\s*[:#\-]?\s*([A-Z0-9\-]+)/i])) || null
 
   const displayName = [year, make, model, variant].filter(Boolean).join(' ') || name
   const vehicleId = images.join('|').match(/\/Used\/(\d+)\//)?.[1] || url.match(/\/(\d+)_/)?.[1] || null
@@ -120,14 +80,14 @@ function buildVehicle({ url, title, description, jsonLdBlocks, images, text }) {
   const slug = slugify(`${displayName}-${sourceKey}`)
 
   return {
-    stock_number: stockNumber,
+    stock_number: stockNumber || vehicleId,
     slug,
     make: make || name.split(/\s+/)[0],
     model: model || name,
     variant,
     year,
     mileage,
-    price,
+    price: null,
     body_type: bodyType,
     transmission,
     fuel_type: fuelType,
@@ -144,40 +104,35 @@ function buildVehicle({ url, title, description, jsonLdBlocks, images, text }) {
 
 async function collectVehicleUrls(page) {
   const urls = new Set()
-  let lastSignature = ''
+  let previousSignature = ''
 
   for (let pageNumber = 1; pageNumber <= MAX_PAGES; pageNumber += 1) {
-    await page.waitForTimeout(1000)
+    await page.waitForTimeout(1200)
     const anchors = await page.evaluate(() => [...document.querySelectorAll('a[href]')].map((a) => a.href))
     for (const href of anchors) {
       if (/^https:\/\/www\.kingofcars\.co\.za\/result\//i.test(href)) urls.add(href.split('#')[0])
     }
 
     const signature = [...urls].sort().join('|')
-    if (signature === lastSignature) break
-    lastSignature = signature
+    console.log(`Showroom page ${pageNumber}: ${urls.size} vehicles discovered`)
+    if (signature === previousSignature) break
+    previousSignature = signature
 
-    const nextClicked = await page.evaluate(() => {
-      const elements = [...document.querySelectorAll('a,button')]
-      const candidates = elements.filter((element) => {
+    const clicked = await page.evaluate(() => {
+      const candidates = [...document.querySelectorAll('a,button')].filter((element) => {
         const text = (element.textContent || '').trim().toLowerCase()
         const aria = (element.getAttribute('aria-label') || '').toLowerCase()
         const className = (element.className || '').toString().toLowerCase()
         return /^(next|›|»)$/.test(text) || aria.includes('next') || className.includes('next')
       })
-      const next = candidates.find((element) =>
-        !element.hasAttribute('disabled') &&
-        !element.classList.contains('disabled') &&
-        element.getAttribute('aria-disabled') !== 'true'
-      )
+      const next = candidates.find((element) => !element.hasAttribute('disabled') && !element.classList.contains('disabled') && element.getAttribute('aria-disabled') !== 'true')
       if (!next) return false
       next.scrollIntoView({ block: 'center' })
       next.click()
       return true
     })
-
-    if (!nextClicked) break
-    await page.waitForTimeout(1800)
+    if (!clicked) break
+    await page.waitForTimeout(2200)
   }
 
   return [...urls]
@@ -195,18 +150,12 @@ async function scrapeVehicle(browser, url) {
       const description = document.querySelector('meta[name="description"]')?.getAttribute('content') || ''
       const jsonLdBlocks = [...document.querySelectorAll('script[type="application/ld+json"]')].map((node) => node.textContent || '')
       const html = document.documentElement.outerHTML
-      const rawImages = [...document.images]
-        .flatMap((img) => [img.currentSrc, img.src, img.getAttribute('data-src'), img.getAttribute('data-lazy-src')])
-        .filter(Boolean)
-      const cdnImages = [...html.matchAll(/https?:\/\/image\.blob\.ix\.co\.za\/Used\/[^"'\\s<>]+/gi)]
-        .map((match) => match[0].replace(/&amp;/g, '&'))
+      const rawImages = [...document.images].flatMap((img) => [img.currentSrc, img.src, img.getAttribute('data-src'), img.getAttribute('data-lazy-src')]).filter(Boolean)
+      const cdnImages = [...html.matchAll(/https?:\/\/image\.blob\.ix\.co\.za\/Used\/[^"'\\s<>]+/gi)].map((match) => match[0].replace(/&amp;/g, '&'))
       return { text, title, description, jsonLdBlocks, images: [...new Set([...rawImages, ...cdnImages])] }
     })
 
-    const images = data.images
-      .map((value) => absolute(value, url))
-      .filter((value) => value && /image\.blob\.ix\.co\.za\/Used\//i.test(value))
-
+    const images = data.images.map((value) => absolute(value, url)).filter((value) => value && /image\.blob\.ix\.co\.za\/Used\//i.test(value))
     return buildVehicle({ url, ...data, images })
   } finally {
     await page.close()
@@ -214,12 +163,17 @@ async function scrapeVehicle(browser, url) {
 }
 
 async function main() {
-  const browser = await chromium.launch({ headless: true })
+  chromiumBinary.setGraphicsMode = false
+  const executablePath = await chromiumBinary.executablePath()
+  console.log(`Using serverless Chromium: ${executablePath}`)
+  console.log(`Syncing full inventory from ${SHOWROOM_URL}`)
+
+  const browser = await playwrightChromium.launch({ headless: true, executablePath, args: chromiumBinary.args })
+
   try {
     const showroom = await browser.newPage()
     await showroom.goto(SHOWROOM_URL, { waitUntil: 'domcontentloaded', timeout: 90000 })
     await showroom.waitForTimeout(2500)
-
     const urls = await collectVehicleUrls(showroom)
     await showroom.close()
 
@@ -240,23 +194,15 @@ async function main() {
     const unique = [...new Map(vehicles.map((vehicle) => [vehicle.slug, vehicle])).values()]
     if (!unique.length) throw new Error('No vehicle records could be parsed.')
 
-    const { data: upserted, error } = await supabase
-      .from('KingsOfCars_vehicles')
-      .upsert(unique, { onConflict: 'slug' })
-      .select('id,slug')
-
+    const { data: upserted, error } = await supabase.from('KingsOfCars_vehicles').upsert(unique, { onConflict: 'slug' }).select('id,slug')
     if (error) throw error
 
     const idBySlug = new Map((upserted || []).map((row) => [row.slug, row.id]))
-
     for (const vehicle of unique) {
       const vehicleId = idBySlug.get(vehicle.slug)
       if (!vehicleId) continue
 
-      const { error: deleteError } = await supabase
-        .from('KingsOfCars_vehicle_images')
-        .delete()
-        .eq('vehicle_id', vehicleId)
+      const { error: deleteError } = await supabase.from('KingsOfCars_vehicle_images').delete().eq('vehicle_id', vehicleId)
       if (deleteError) throw deleteError
 
       if (vehicle.gallery_urls?.length) {
@@ -265,16 +211,16 @@ async function main() {
           image_url,
           sort_order,
           is_primary: sort_order === 0,
-          alt_text: vehicle.slug,
+          alt_text: [vehicle.year, vehicle.make, vehicle.model, vehicle.variant].filter(Boolean).join(' '),
         }))
-        const { error: imageError } = await supabase
-          .from('KingsOfCars_vehicle_images')
-          .insert(rows)
+        const { error: imageError } = await supabase.from('KingsOfCars_vehicle_images').insert(rows)
         if (imageError) throw imageError
       }
     }
 
-    console.log(`Upserted ${unique.length} King of Cars vehicles and their image galleries.`)
+    console.log(`SUCCESS: Upserted ${unique.length} King of Cars vehicles.`)
+    console.log('SUCCESS: Rebuilt image galleries for every imported vehicle.')
+    console.log('SUCCESS: All imported vehicle prices are POA (price = NULL).')
   } finally {
     await browser.close()
   }
