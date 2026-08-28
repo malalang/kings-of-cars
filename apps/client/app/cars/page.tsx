@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { CarFront, ChevronDown, Gauge, Heart, Mail, Palette, Search } from 'lucide-react'
+import { CarsSort } from '../../components/cars-sort'
 import { getVehicles } from '../../lib/vehicles'
 
 export const revalidate = 60
@@ -124,7 +125,7 @@ export default async function CarsPage({ searchParams }: { searchParams: Promise
 
             <section className="koc-legacy-results">
               <div className="koc-legacy-results-top"><div className="koc-legacy-count">Showing {pageVehicles.length ? `${(page - 1) * pageSize + 1} - ${Math.min(page * pageSize, filtered.length)}` : 0} of {filtered.length} vehicles <span className="koc-legacy-time">(0.249 seconds)</span></div><Pagination page={page} pageCount={pageCount} query={query} /></div>
-              <div className="koc-legacy-sort"><select name="sort" defaultValue={sort} aria-label="Sort vehicles" onChange={(event) => { event.currentTarget.form?.requestSubmit() }}><option value="featured">Sort: Featured</option><option value="price-asc">Price: Low to High</option><option value="price-desc">Price: High to Low</option><option value="mileage-asc">Mileage: Lowest</option><option value="year-desc">Year: Newest</option></select></div>
+              <div className="koc-legacy-sort"><CarsSort value={sort} /></div>
               <div className="koc-legacy-vehicle-list">
                 {pageVehicles.length === 0 ? <div className="koc-vs-empty">No vehicles match your search criteria. <Link href="/cars">Clear Filters</Link></div> : pageVehicles.map((car) => {
                   const imageCount = Number(car.image_count || car.images_count || 0)
