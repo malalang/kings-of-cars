@@ -1,6 +1,8 @@
 name: Sync King of Cars inventory
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
   schedule:
     - cron: '17 * * * *'
@@ -11,7 +13,7 @@ permissions:
 jobs:
   sync-inventory:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,8 +33,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
       - name: Sync live King of Cars inventory
         env:
           SUPABASE_URL: ${{ secrets.KINGS_OF_CARS_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.KINGS_OF_CARS_SUPABASE_SERVICE_ROLE_KEY }}
+          KINGS_OF_CARS_MAX_PAGES: 40
+          KINGS_OF_CARS_DETAIL_CONCURRENCY: 4
         run: pnpm sync:inventory
