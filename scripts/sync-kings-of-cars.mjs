@@ -10,7 +10,9 @@ const SHOWROOM_URL = process.env.KINGS_OF_CARS_SHOWROOM_URL ?? 'https://www.king
 const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const MAX_PAGES = Number(process.env.KINGS_OF_CARS_MAX_PAGES ?? 40)
-const DETAIL_CONCURRENCY = Number(process.env.KINGS_OF_CARS_DETAIL_CONCURRENCY ?? 4)
+// King of Cars detail pages are resource-heavy. Keep this sequential by default so
+// Vercel's serverless Chromium is not killed when several pages are opened at once.
+const DETAIL_CONCURRENCY = Number(process.env.KINGS_OF_CARS_DETAIL_CONCURRENCY ?? 1)
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   throw new Error('Missing SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
@@ -71,7 +73,6 @@ function nameFromImage(images) {
     const file = path.split('/').pop() ?? ''
     const withoutExt = file.replace(/\.(?:jpe?g|png|webp)$/i, '')
     const parts = withoutExt.split('-')
-    // King of Cars image names are: YEAR-COLOUR-MAKE-MODEL-VARIANT-STOCK-N
     const stockIndex = parts.findIndex((part) => /^\d{6,}$/.test(part))
     if (stockIndex < 0) return null
     const prefix = parts.slice(0, stockIndex)
@@ -79,7 +80,6 @@ function nameFromImage(images) {
     if (yearIndex < 0) return null
     const year = prefix[yearIndex]
     const rest = prefix.slice(yearIndex + 1)
-    // Drop the colour token and common category token; retain the descriptive vehicle name.
     const knownCategories = new Set(['Light', 'Commercial', 'Passenger', 'Vehicle'])
     const tokens = rest.filter((token, index) => index !== 0 && !knownCategories.has(token))
     return clean(`${year} ${tokens.join(' ')}`)
@@ -233,7 +233,16 @@ async function main() {
   console.log(`Using serverless Chromium: ${executablePath}`)
   console.log(`Syncing full inventory from ${SHOWROOM_URL}`)
 
-  const browser = await playwrightChromium.launch({ headless: true, executablePath, args: chromiumBinary.args })
+  const browser = await playwrightChromium.launch({
+    headless: true,
+    executablePath,
+    args: [
+      ...chromiumBinary.args,
+      '--disable-dev-shm-usage',
+      '--disable-background-networking',
+      '--disable-renderer-backgrounding',
+    ],
+  })
 
   try {
     const showroom = await browser.newPage()
