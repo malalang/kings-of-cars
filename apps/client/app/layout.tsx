@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { SiteHeader } from '../components/site-header'
 import './globals.css'
+import './cars.css'
 
 export const metadata: Metadata = {
   title: 'King of Cars | Quality Used Cars',
