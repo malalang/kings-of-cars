@@ -2,7 +2,25 @@
   "name": "@kings-of-cars/client",
   "version": "0.2.0",
   "private": true,
-  "scripts": {"dev":"next dev","build":"next build","start":"next start","lint":"biome check .","typecheck":"tsc --noEmit"},
-  "dependencies": {"@supabase/supabase-js":"2.57.4","next":"catalog:","react":"catalog:","react-dom":"catalog:","lucide-react":"catalog:","react-icons":"^5.5.0"},
-  "devDependencies": {"@types/node":"catalog:","@types/react":"catalog:","@types/react-dom":"catalog:","typescript":"catalog:"}
+  "scripts": {
+    "dev": "next dev",
+    "build": "cd ../.. && pnpm exec playwright install chromium && node scripts/import-kingofcars-batch.mjs && cd apps/client && next build",
+    "start": "next start",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.57.4",
+    "next": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "lucide-react": "catalog:",
+    "react-icons": "^5.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "typescript": "catalog:"
+  }
 }
