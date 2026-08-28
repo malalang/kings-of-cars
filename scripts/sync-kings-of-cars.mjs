@@ -58,32 +58,86 @@ function fromText(text, patterns) {
   return null
 }
 
-function buildVehicle({ url, title, description, jsonLdBlocks, images, text }) {
+function stockFromUrl(url) {
+  const matches = [...String(url).matchAll(/(?:result|Used)[^\d]*(\d{6,})/gi)]
+  return matches.at(-1)?.[1] ?? null
+}
+
+function nameFromImage(images) {
+  const first = images.find((value) => /image\.blob\.ix\.co\.za\/Used\//i.test(value))
+  if (!first) return null
+  try {
+    const path = decodeURIComponent(new URL(first).pathname)
+    const file = path.split('/').pop() ?? ''
+    const withoutExt = file.replace(/\.(?:jpe?g|png|webp)$/i, '')
+    const parts = withoutExt.split('-')
+    // King of Cars image names are: YEAR-COLOUR-MAKE-MODEL-VARIANT-STOCK-N
+    const stockIndex = parts.findIndex((part) => /^\d{6,}$/.test(part))
+    if (stockIndex < 0) return null
+    const prefix = parts.slice(0, stockIndex)
+    const yearIndex = prefix.findIndex((part) => /^20\d{2}$/.test(part))
+    if (yearIndex < 0) return null
+    const year = prefix[yearIndex]
+    const rest = prefix.slice(yearIndex + 1)
+    // Drop the colour token and common category token; retain the descriptive vehicle name.
+    const knownCategories = new Set(['Light', 'Commercial', 'Passenger', 'Vehicle'])
+    const tokens = rest.filter((token, index) => index !== 0 && !knownCategories.has(token))
+    return clean(`${year} ${tokens.join(' ')}`)
+  } catch {
+    return null
+  }
+}
+
+function buildVehicle({ url, title, description, jsonLdBlocks, images, text, metaTitle, ogTitle }) {
   const item = vehicleJsonLd(parseJsonLd(jsonLdBlocks))
-  const name = clean(item?.name || title)
-  if (!name) return null
+  const stockFromImages = images.join('|').match(/\/Used\/(\d+)\//i)?.[1] ?? null
+  const stockNumber = clean(item?.sku || item?.mpn || item?.productID || fromText(text, [
+    /\bStock(?: Number| No\.?| #)?\s*[:#\-]?\s*([A-Z0-9\-]+)/i,
+  ]) || stockFromImages || stockFromUrl(url)) || null
 
-  const make = clean(item?.brand?.name || item?.manufacturer?.name || item?.make || fromText(text, [/\bMake\s*[:\-]\s*([^|\n]+)/i])) || null
-  const model = clean(item?.model || item?.vehicleModel || fromText(text, [/\bModel\s*[:\-]\s*([^|\n]+)/i])) || null
-  const variant = clean(item?.vehicleConfiguration || item?.trim || item?.variant || fromText(text, [/\bVariant\s*[:\-]\s*([^|\n]+)/i])) || null
-  const year = integerValue(item?.vehicleModelDate || item?.modelDate || item?.productionDate || fromText(text, [/\b(?:Year|Model Year)\s*[:\-]\s*(20\d{2})/i]))
-  const mileage = integerValue(item?.mileageFromOdometer?.value ?? item?.mileage ?? fromText(text, [/\bMileage\s*[:\-]?\s*([0-9,]+)/i]))
-  const transmission = clean(item?.vehicleTransmission || item?.transmission || fromText(text, [/\bTransmission\s*[:\-]\s*([^|\n]+)/i])) || null
-  const fuelType = clean(item?.fuelType || fromText(text, [/\bFuel(?: Type)?\s*[:\-]\s*([^|\n]+)/i])) || null
-  const colour = clean(item?.color || item?.colour || fromText(text, [/\bColou?r\s*[:\-]\s*([^|\n]+)/i])) || null
-  const bodyType = clean(item?.bodyType || fromText(text, [/\bBody Type\s*[:\-]\s*([^|\n]+)/i])) || null
-  const stockNumber = clean(item?.sku || item?.mpn || item?.productID || fromText(text, [/\bStock(?: Number| No\.?| #)?\s*[:#\-]?\s*([A-Z0-9\-]+)/i])) || null
+  const fallbackName = nameFromImage(images) || clean(ogTitle || metaTitle || title || fromText(text, [
+    /(?:Vehicle|Car)\s*[:\-]\s*([^\n]+)/i,
+  ]))
+  const name = clean(item?.name || fallbackName)
+  if (!name && !stockNumber) return null
 
-  const displayName = [year, make, model, variant].filter(Boolean).join(' ') || name
-  const vehicleId = images.join('|').match(/\/Used\/(\d+)\//)?.[1] || url.match(/\/(\d+)_/)?.[1] || null
-  const sourceKey = stockNumber || vehicleId || slugify(displayName)
+  const make = clean(item?.brand?.name || item?.manufacturer?.name || item?.make || fromText(text, [
+    /\bMake\s*[:\-]\s*([^|\n]+)/i,
+  ])) || null
+  const model = clean(item?.model || item?.vehicleModel || fromText(text, [
+    /\bModel\s*[:\-]\s*([^|\n]+)/i,
+  ])) || null
+  const variant = clean(item?.vehicleConfiguration || item?.trim || item?.variant || fromText(text, [
+    /\bVariant\s*[:\-]\s*([^|\n]+)/i,
+  ])) || null
+  const year = integerValue(item?.vehicleModelDate || item?.modelDate || item?.productionDate || fromText(text, [
+    /\b(?:Year|Model Year)\s*[:\-]\s*(20\d{2})/i,
+  ]) || name.match(/\b(20\d{2})\b/)?.[1])
+  const mileage = integerValue(item?.mileageFromOdometer?.value ?? item?.mileage ?? fromText(text, [
+    /\bMileage\s*[:\-]?\s*([0-9,]+)/i,
+  ]))
+  const transmission = clean(item?.vehicleTransmission || item?.transmission || fromText(text, [
+    /\bTransmission\s*[:\-]\s*([^|\n]+)/i,
+  ])) || null
+  const fuelType = clean(item?.fuelType || fromText(text, [
+    /\bFuel(?: Type)?\s*[:\-]\s*([^|\n]+)/i,
+  ])) || null
+  const colour = clean(item?.color || item?.colour || fromText(text, [
+    /\bColou?r\s*[:\-]\s*([^|\n]+)/i,
+  ])) || null
+  const bodyType = clean(item?.bodyType || fromText(text, [
+    /\bBody Type\s*[:\-]\s*([^|\n]+)/i,
+  ])) || null
+
+  const displayName = [year, make, model, variant].filter(Boolean).join(' ') || name || `King of Cars vehicle ${stockNumber}`
+  const sourceKey = stockNumber || stockFromImages || slugify(displayName)
   const slug = slugify(`${displayName}-${sourceKey}`)
 
   return {
-    stock_number: stockNumber || vehicleId,
+    stock_number: stockNumber,
     slug,
-    make: make || name.split(/\s+/)[0],
-    model: model || name,
+    make: make || name?.split(/\s+/)[1] || name?.split(/\s+/)[0] || 'Unknown',
+    model: model || name || `Vehicle ${stockNumber}`,
     variant,
     year,
     mileage,
@@ -92,8 +146,8 @@ function buildVehicle({ url, title, description, jsonLdBlocks, images, text }) {
     transmission,
     fuel_type: fuelType,
     colour,
-    description: clean(item?.description || description) || null,
-    overview: clean(item?.description || description) || null,
+    description: clean(item?.description || description) || name || null,
+    overview: clean(item?.description || description) || name || null,
     image_url: images[0] ?? null,
     gallery_urls: [...new Set(images)],
     source_url: url,
@@ -110,7 +164,7 @@ async function collectVehicleUrls(page) {
     await page.waitForTimeout(1200)
     const anchors = await page.evaluate(() => [...document.querySelectorAll('a[href]')].map((a) => a.href))
     for (const href of anchors) {
-      if (/^https:\/\/www\.kingofcars\.co\.za\/result\//i.test(href)) urls.add(href.split('#')[0])
+      if (/\/result\//i.test(href) && /kingofcars\.co\.za/i.test(href)) urls.add(href.split('#')[0])
     }
 
     const signature = [...urls].sort().join('|')
@@ -142,21 +196,32 @@ async function scrapeVehicle(browser, url) {
   const page = await browser.newPage()
   try {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 })
-    await page.waitForTimeout(900)
+    await page.waitForTimeout(1200)
 
     const data = await page.evaluate(() => {
       const text = document.body?.innerText || ''
       const title = document.querySelector('h1')?.textContent?.trim() || document.title || ''
+      const metaTitle = document.querySelector('meta[name="title"]')?.getAttribute('content') || ''
+      const ogTitle = document.querySelector('meta[property="og:title"]')?.getAttribute('content') || ''
       const description = document.querySelector('meta[name="description"]')?.getAttribute('content') || ''
       const jsonLdBlocks = [...document.querySelectorAll('script[type="application/ld+json"]')].map((node) => node.textContent || '')
       const html = document.documentElement.outerHTML
-      const rawImages = [...document.images].flatMap((img) => [img.currentSrc, img.src, img.getAttribute('data-src'), img.getAttribute('data-lazy-src')]).filter(Boolean)
+      const rawImages = [...document.images].flatMap((img) => [
+        img.currentSrc,
+        img.src,
+        img.getAttribute('data-src'),
+        img.getAttribute('data-lazy-src'),
+        img.getAttribute('data-original'),
+      ]).filter(Boolean)
+      const srcsetImages = [...document.querySelectorAll('[srcset]')].flatMap((node) => (node.getAttribute('srcset') || '').split(',').map((part) => part.trim().split(/\s+/)[0])).filter(Boolean)
       const cdnImages = [...html.matchAll(/https?:\/\/image\.blob\.ix\.co\.za\/Used\/[^"'\\s<>]+/gi)].map((match) => match[0].replace(/&amp;/g, '&'))
-      return { text, title, description, jsonLdBlocks, images: [...new Set([...rawImages, ...cdnImages])] }
+      return { text, title, metaTitle, ogTitle, description, jsonLdBlocks, images: [...new Set([...rawImages, ...srcsetImages, ...cdnImages])] }
     })
 
     const images = data.images.map((value) => absolute(value, url)).filter((value) => value && /image\.blob\.ix\.co\.za\/Used\//i.test(value))
-    return buildVehicle({ url, ...data, images })
+    const vehicle = buildVehicle({ url, ...data, images })
+    if (!vehicle) console.warn(`[unparsed] ${url} | title=${data.title} | stock=${stockFromUrl(url)}`)
+    return vehicle
   } finally {
     await page.close()
   }
@@ -192,6 +257,7 @@ async function main() {
     }
 
     const unique = [...new Map(vehicles.map((vehicle) => [vehicle.slug, vehicle])).values()]
+    console.log(`Parsed ${unique.length}/${urls.length} vehicle records.`)
     if (!unique.length) throw new Error('No vehicle records could be parsed.')
 
     const { data: upserted, error } = await supabase.from('KingsOfCars_vehicles').upsert(unique, { onConflict: 'slug' }).select('id,slug')
