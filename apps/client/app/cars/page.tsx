@@ -307,164 +307,112 @@ export default async function CarsPage({ searchParams }: { searchParams: Promise
               ) : (
                 <div className="row">
                   {filtered.map((car) => (
-                    <div
-                      key={car.id}
-                      className="col-12 col-md-12 col-lg-6 col-xl-4 p-0 card vs-list-tile mt-3"
-                      data-vin={car.slug ?? ''}
-                      data-friendly-name={`${car.make} ${car.model} ${car.variant ?? ''}`.trim()}
-                    >
+                    <div key={car.id} className="col-12 p-0 card vs-list-tile mt-3" data-vin={car.slug ?? ''} data-friendly-name={`${car.make} ${car.model} ${car.variant ?? ''}`.trim()}>
                       <div className="card-body p-2" data-vehicle-clientID={car.id}>
                         <div className="row no-gutters">
-                          <div className="col-12 mw-100" id={`vs-list-gallery-${car.id}`}>
-                            <div className="koc-tile-media">
+                          <div className="col-12 col-lg-4 mw-100" id={`vs-list-gallery-${car.id}`}>
+                            <div className="koc-tile-media" style={{ aspectRatio: '16/10', background: '#f5f5f5' }}>
                               {car.image_url ? (
-                                <img
-                                  src={car.image_url}
-                                  alt={`${car.year ?? ''} ${car.make} ${car.model}`.trim()}
-                                  loading="lazy"
-                                />
+                                <img src={car.image_url} alt={`${car.year ?? ''} ${car.make} ${car.model}`.trim()} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                               ) : (
-                                <div className="imagePlaceHolder fa-10x text-center">
-                                  <span style={{ fontSize: '3rem', color: '#c6c6c6' }}>🚗</span>
-                                  <span style={{ display: 'block', fontSize: '.8rem', color: '#999', marginTop: 8 }}>
-                                    No image available
-                                  </span>
+                                <div className="imagePlaceHolder fa-10x text-center" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#ededed', color: '#c6c6c6' }}>
+                                  <span style={{ fontSize: '2.8rem', lineHeight: 1 }}>🚐</span>
+                                  <span style={{ display: 'block', fontSize: '.78rem', color: '#999', marginTop: 6, fontFamily: 'Lato,sans-serif' }}>No image available</span>
                                 </div>
                               )}
                             </div>
                           </div>
-                          <div className="col-12 d-flex flex-column">
+                          <div className="col-12 col-lg-6 d-flex flex-column">
                             <div className="row no-gutters pl-2 my-1 align-items-baseline">
-                              <span className="vs-list-year text-primary p-0 mr-1" style={{ fontWeight: 700 }}>
+                              <span className="vs-list-year text-primary p-0 mr-1" style={{ fontWeight: 700, fontSize: '.92rem' }}>
                                 {car.year ?? '—'}
                               </span>
-                              <span className="vs-list-name btn-sm p-0" style={{ fontSize: '.92rem' }}>
-                                {car.make} {car.model} {car.variant ? ` ${car.variant}` : ''}
+                              <span className="vs-list-name btn-sm p-0" style={{ fontSize: '.92rem', color: '#5d5b5a', fontWeight: 400 }}>
+                                {car.make} {car.model} {car.variant ? ` ${car.variant}` : ''} {car.body_type ? `• ${car.body_type}` : ''}
                               </span>
                             </div>
                             <div className="row no-gutters pl-2 align-items-baseline">
-                              <div className="col-7">
-                                <div className="vs-list-price text-primary font-weight-bold" style={{ fontSize: 'large' }}>
+                              <div className="col-6">
+                                <div className="vs-list-price text-primary font-weight-bold" style={{ fontSize: '1.15rem', lineHeight: 1 }}>
                                   {money(car.price)}
                                 </div>
                               </div>
-                              <div className="col-5 pr-0 text-right">
-                                <span className="small text-muted" style={{ fontSize: '.78rem', textTransform: 'capitalize' }}>
-                                  {car.body_type ?? ''}
-                                </span>
+                              <div className="col-6 pr-0 text-right" style={{ fontSize: '.8rem', color: '#999' }}>
+                                {car.mileage != null ? `${car.mileage.toLocaleString('en-ZA')} Km` : ''}
                               </div>
                             </div>
-                            <div className="ml-3 mr-3 mt-3" style={{ borderBottom: '1px inset #e9ecef' }} />
-                            <div className="row no-gutters pl-2 mt-md-3">
+                            <div className="ml-3 mr-3 mt-2" style={{ borderBottom: '1px solid #eee' }} />
+                            <div className="row no-gutters pl-2 mt-md-2">
                               {car.mileage != null && (
-                                <div className="col-6 vs-list-mileage" style={{ fontSize: '0.9rem' }}>
-                                  <span className="mr-1" aria-hidden>
-                                    <Gauge size={13} />
-                                  </span>
+                                <div className="col-6 vs-list-mileage" style={{ fontSize: '.85rem', color: '#5d5b5a' }}>
+                                  <span className="mr-1" aria-hidden><Gauge size={12} /></span>
                                   {car.mileage.toLocaleString('en-ZA')} Km
                                 </div>
                               )}
                               {car.colour && (
-                                <div
-                                  className="col-6 vs-list-colour"
-                                  style={{ fontSize: '0.9rem', textTransform: 'capitalize' }}
-                                >
-                                  <span className="mr-1" aria-hidden>
-                                    <Palette size={13} />
-                                  </span>
+                                <div className="col-6 vs-list-colour" style={{ fontSize: '.85rem', color: '#5d5b5a', textTransform: 'capitalize' }}>
+                                  <span className="mr-1" aria-hidden><Palette size={12} /></span>
                                   {car.colour}
                                 </div>
                               )}
+                              {car.transmission && (
+                                <div className="col-6 vs-list-transmission d-lg-none" style={{ fontSize: '.85rem', color: '#5d5b5a' }}>
+                                  <span className="mr-1" aria-hidden><Settings2 size={12} /></span>
+                                  {car.transmission}
+                                </div>
+                              )}
+                              {car.fuel_type && (
+                                <div className="col-6 vs-list-fuel d-lg-none" style={{ fontSize: '.85rem', color: '#5d5b5a', textTransform: 'capitalize' }}>
+                                  <span className="mr-1" aria-hidden><Fuel size={12} /></span>
+                                  {car.fuel_type}
+                                </div>
+                              )}
+                            </div>
+                            <div className="d-flex mt-1 pl-2 align-items-center" style={{ gap: 6, fontSize: '.75rem' }}>
+                              <span className="d-inline-flex align-items-center" style={{ gap: 4, color: '#5d5b5a' }}>
+                                <span style={{ width: 22, height: 22, background: '#1877f2', color: '#fff', borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '.7rem', fontWeight: 700 }}>+</span>
+                                <span style={{ width: 22, height: 22, background: '#25d366', color: '#fff', borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '.7rem' }}>✆</span>
+                                <span style={{ width: 22, height: 22, background: '#1877f2', color: '#fff', borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '.65rem', fontWeight: 700 }}>f</span>
+                                <span style={{ width: 22, height: 22, background: '#999', color: '#fff', borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '.65rem' }}>✉</span>
+                              </span>
                             </div>
                             <div className="align-items-end d-flex flex-fill no-gutters ShowButtonsAtTop row mt-2">
                               <div className="col-12">
-                                <div className="row px-1 mx-0 col-12">
-                                  <div className="col-6 px-0">
-                                    <Link
-                                      href={`/cars/${car.slug}`}
-                                      className="vs-result-more-button btn btn-outline-dark btn-block btn-sm"
-                                      style={{ width: '98%' }}
-                                    >
+                                <div className="row px-1 mx-0 col-12 g-1" style={{ rowGap: 6 }}>
+                                  <div className="col-6 col-lg-3 px-1">
+                                    <Link href={`/cars/${car.slug}`} className="vs-result-more-button btn btn-outline-dark btn-block btn-sm w-100" style={{ fontSize: '.78rem', padding: '6px 4px', borderRadius: 2, whiteSpace: 'nowrap' }}>
                                       More Info
                                     </Link>
                                   </div>
-                                  <div className="col-6 px-0">
-                                    <Link
-                                      href={`/cars/${car.slug}`}
-                                      className="btn btn-primary w-100 btn-sm"
-                                      style={{ width: '98%' }}
-                                    >
+                                  <div className="col-6 col-lg-3 px-1">
+                                    <Link href={`/cars/${car.slug}`} className="btn btn-primary w-100 btn-sm" style={{ fontSize: '.78rem', padding: '6px 4px', borderRadius: 2, whiteSpace: 'nowrap' }}>
                                       Enquire
                                     </Link>
                                   </div>
-                                  <div className="col-6 px-0 mt-1">
-                                    <div
-                                      className="btn btn-secondary btn-block btn-sm"
-                                      style={{
-                                        cursor: 'pointer',
-                                        width: '98%',
-                                        display: 'block',
-                                        margin: '0 auto',
-                                        padding: '2.5px 10px',
-                                      }}
-                                    >
-                                      <div className="align-items-center row">
-                                        <div className="pr-0 col-1" style={{ fontSize: '1rem' }}>
-                                          <span className="fa-stack" style={{ height: '1rem', lineHeight: '1rem', fontSize: '60%' }}>
-                                            <Heart size={12} />
-                                          </span>
-                                        </div>
-                                        <div className="col-10 pl-sm-2 p-0" style={{ fontSize: '0.75rem' }}>
-                                          Compare
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="col-6 px-0 mt-1">
-                                    <Link
-                                      href={`/finance?price=${car.price ?? ''}&vehicle=${car.slug}`}
-                                      className="btn btn-secondary btn-block btn-sm"
-                                      style={{ width: '98%', opacity: car.price ? 1 : 0.6 }}
-                                    >
+                                  <div className="col-6 col-lg-3 px-1">
+                                    <Link href={`/finance?price=${car.price ?? ''}&vehicle=${car.slug}`} className="btn btn-secondary btn-block btn-sm w-100" style={{ fontSize: '.78rem', padding: '6px 4px', borderRadius: 2, whiteSpace: 'nowrap', opacity: car.price ? 1 : 0.6 }}>
                                       Finance
                                     </Link>
+                                  </div>
+                                  <div className="col-6 col-lg-3 px-1">
+                                    <div className="btn btn-secondary btn-block btn-sm w-100" style={{ cursor: 'pointer', fontSize: '.78rem', padding: '5px 4px', borderRadius: 2, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                      <Heart size={11} /> Compare
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                          {/* Right spec column - desktop only like real site */}
-                          <div className="border-top bg-light border-primary border-3 col-lg-2 d-none flex-lg-column d-lg-flex p-0">
-                            <div className="no-gutters pb-2 row text-center w-100 m-0">
-                              {car.body_type && (
-                                <div className="col-12 text-capitalize" style={{ fontSize: '.95rem', padding: '6px 0 0' }}>
-                                  {car.body_type}
-                                </div>
-                              )}
-                              {car.transmission && (
-                                <div className="col-12 text-capitalize" style={{ fontSize: '.95rem' }}>
-                                  {car.transmission}
-                                </div>
-                              )}
-                              {car.fuel_type && (
-                                <div className="col-12 text-capitalize" style={{ fontSize: '.95rem' }}>
-                                  {car.fuel_type}
-                                </div>
-                              )}
-                              {car.colour && (
-                                <div className="col-12 text-capitalize d-lg-none" style={{ fontSize: '.95rem' }}>
-                                  {car.colour}
-                                </div>
-                              )}
-                              {car.mileage == null && (
-                                <div className="col-12" style={{ fontSize: '.95rem', color: '#999' }}>
-                                  —
-                                </div>
-                              )}
+                          <div className="border-top bg-light border-primary border-3 col-lg-2 d-none d-lg-flex flex-column p-0" style={{ background: '#f8f9fa', borderTop: '3px solid #242424 !important' }}>
+                            <div className="no-gutters pb-2 row text-center w-100 m-0 pt-2" style={{ fontSize: '.82rem', color: '#5d5b5a', lineHeight: 1.45 }}>
+                              <div className="col-12 text-capitalize" style={{ padding: '2px 0' }}>{car.body_type ?? '—'}</div>
+                              <div className="col-12 text-capitalize">{car.transmission ?? '—'}</div>
+                              <div className="col-12 text-capitalize">{car.fuel_type ?? '—'}</div>
+                              <div className="col-12 text-capitalize">{car.colour ?? ''}</div>
+                              <div className="col-12" style={{ fontSize: '.78rem', color: '#999', marginTop: 4 }}>{car.mileage != null ? `${car.mileage.toLocaleString('en-ZA')} Km` : ''}</div>
                             </div>
                           </div>
                         </div>
-                        {/* hidden enquiry anchor like real widget */}
                         <div className="row no-gutters w-100" id={`vehicle-tile-card-calculator-${car.id}`} style={{ borderRadius: '.2rem' }} />
                       </div>
                     </div>
