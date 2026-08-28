@@ -307,7 +307,12 @@ export default async function CarsPage({ searchParams }: { searchParams: Promise
               ) : (
                 <div className="row">
                   {filtered.map((car) => (
-                    <div key={car.id} className="col-12 col-md-12 col-lg-6 col-xl-4 p-0 card vs-list-tile mt-3">
+                    <div
+                      key={car.id}
+                      className="col-12 col-md-12 col-lg-6 col-xl-4 p-0 card vs-list-tile mt-3"
+                      data-vin={car.slug ?? ''}
+                      data-friendly-name={`${car.make} ${car.model} ${car.variant ?? ''}`.trim()}
+                    >
                       <div className="card-body p-2" data-vehicle-clientID={car.id}>
                         <div className="row no-gutters">
                           <div className="col-12 mw-100" id={`vs-list-gallery-${car.id}`}>
@@ -320,16 +325,20 @@ export default async function CarsPage({ searchParams }: { searchParams: Promise
                                 />
                               ) : (
                                 <div className="imagePlaceHolder fa-10x text-center">
-                                  <Heart size={28} />
-                                  <span>No vehicle image</span>
+                                  <span style={{ fontSize: '3rem', color: '#c6c6c6' }}>🚗</span>
+                                  <span style={{ display: 'block', fontSize: '.8rem', color: '#999', marginTop: 8 }}>
+                                    No image available
+                                  </span>
                                 </div>
                               )}
                             </div>
                           </div>
                           <div className="col-12 d-flex flex-column">
-                            <div className="row no-gutters pl-2 my-1">
-                              <span className="vs-list-year text-primary p-0 mr-1">{car.year ?? '—'}</span>
-                              <span className="vs-list-name btn-sm p-0">
+                            <div className="row no-gutters pl-2 my-1 align-items-baseline">
+                              <span className="vs-list-year text-primary p-0 mr-1" style={{ fontWeight: 700 }}>
+                                {car.year ?? '—'}
+                              </span>
+                              <span className="vs-list-name btn-sm p-0" style={{ fontSize: '.92rem' }}>
                                 {car.make} {car.model} {car.variant ? ` ${car.variant}` : ''}
                               </span>
                             </div>
@@ -340,33 +349,30 @@ export default async function CarsPage({ searchParams }: { searchParams: Promise
                                 </div>
                               </div>
                               <div className="col-5 pr-0 text-right">
-                                <span className="vs-list-mileage small text-muted">{car.body_type ?? ''}</span>
+                                <span className="small text-muted" style={{ fontSize: '.78rem', textTransform: 'capitalize' }}>
+                                  {car.body_type ?? ''}
+                                </span>
                               </div>
                             </div>
                             <div className="ml-3 mr-3 mt-3" style={{ borderBottom: '1px inset #e9ecef' }} />
                             <div className="row no-gutters pl-2 mt-md-3">
                               {car.mileage != null && (
                                 <div className="col-6 vs-list-mileage" style={{ fontSize: '0.9rem' }}>
-                                  <Gauge size={13} className="mr-1" />
+                                  <span className="mr-1" aria-hidden>
+                                    <Gauge size={13} />
+                                  </span>
                                   {car.mileage.toLocaleString('en-ZA')} Km
                                 </div>
                               )}
                               {car.colour && (
-                                <div className="col-6 vs-list-colour" style={{ fontSize: '0.9rem' }}>
-                                  <Palette size={13} className="mr-1" />
+                                <div
+                                  className="col-6 vs-list-colour"
+                                  style={{ fontSize: '0.9rem', textTransform: 'capitalize' }}
+                                >
+                                  <span className="mr-1" aria-hidden>
+                                    <Palette size={13} />
+                                  </span>
                                   {car.colour}
-                                </div>
-                              )}
-                              {car.transmission && (
-                                <div className="col-6 vs-list-transmission" style={{ fontSize: '0.9rem' }}>
-                                  <Settings2 size={13} className="mr-1" />
-                                  {car.transmission}
-                                </div>
-                              )}
-                              {car.fuel_type && (
-                                <div className="col-6 vs-list-fuel" style={{ fontSize: '0.9rem' }}>
-                                  <Fuel size={13} className="mr-1" />
-                                  {car.fuel_type}
                                 </div>
                               )}
                             </div>
@@ -414,22 +420,52 @@ export default async function CarsPage({ searchParams }: { searchParams: Promise
                                       </div>
                                     </div>
                                   </div>
-                                  {car.price != null && (
-                                    <div className="col-6 px-0 mt-1">
-                                      <Link
-                                        href={`/finance?price=${car.price}&vehicle=${car.slug}`}
-                                        className="btn btn-secondary btn-block btn-sm"
-                                        style={{ width: '98%' }}
-                                      >
-                                        Finance
-                                      </Link>
-                                    </div>
-                                  )}
+                                  <div className="col-6 px-0 mt-1">
+                                    <Link
+                                      href={`/finance?price=${car.price ?? ''}&vehicle=${car.slug}`}
+                                      className="btn btn-secondary btn-block btn-sm"
+                                      style={{ width: '98%', opacity: car.price ? 1 : 0.6 }}
+                                    >
+                                      Finance
+                                    </Link>
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
+                          {/* Right spec column - desktop only like real site */}
+                          <div className="border-top bg-light border-primary border-3 col-lg-2 d-none flex-lg-column d-lg-flex p-0">
+                            <div className="no-gutters pb-2 row text-center w-100 m-0">
+                              {car.body_type && (
+                                <div className="col-12 text-capitalize" style={{ fontSize: '.95rem', padding: '6px 0 0' }}>
+                                  {car.body_type}
+                                </div>
+                              )}
+                              {car.transmission && (
+                                <div className="col-12 text-capitalize" style={{ fontSize: '.95rem' }}>
+                                  {car.transmission}
+                                </div>
+                              )}
+                              {car.fuel_type && (
+                                <div className="col-12 text-capitalize" style={{ fontSize: '.95rem' }}>
+                                  {car.fuel_type}
+                                </div>
+                              )}
+                              {car.colour && (
+                                <div className="col-12 text-capitalize d-lg-none" style={{ fontSize: '.95rem' }}>
+                                  {car.colour}
+                                </div>
+                              )}
+                              {car.mileage == null && (
+                                <div className="col-12" style={{ fontSize: '.95rem', color: '#999' }}>
+                                  —
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
+                        {/* hidden enquiry anchor like real widget */}
+                        <div className="row no-gutters w-100" id={`vehicle-tile-card-calculator-${car.id}`} style={{ borderRadius: '.2rem' }} />
                       </div>
                     </div>
                   ))}
