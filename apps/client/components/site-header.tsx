@@ -1,3 +1,5 @@
+'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
 import { Heart, Menu, Phone, X } from 'lucide-react'
@@ -31,27 +33,14 @@ export function SiteHeader() {
           </div>
         </div>
       </div>
-
       <div className="koc-header-main">
         <div className="koc-container koc-header-main-inner">
-          <Link href="/" className="koc-brand" aria-label="King of Cars home">
-            <Image src="/logo.png" alt="King of Cars" width={180} height={64} priority className="koc-logo" />
-          </Link>
-          <nav className="koc-desktop-nav" aria-label="Main navigation">
-            {nav.map((item) => <Link key={item.label} href={item.href}>{item.label}</Link>)}
-          </nav>
-          <button className="koc-menu-button" type="button" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen(!open)}>
-            {open ? <X size={20} /> : <Menu size={20} />}
-          </button>
+          <Link href="/" className="koc-brand" aria-label="King of Cars home"><Image src="/logo.png" alt="King of Cars" width={180} height={64} priority className="koc-logo" /></Link>
+          <nav className="koc-desktop-nav" aria-label="Main navigation">{nav.map((item) => <Link key={item.label} href={item.href}>{item.label}</Link>)}</nav>
+          <button className="koc-menu-button" type="button" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen(!open)}>{open ? <X size={20} /> : <Menu size={20} />}</button>
         </div>
       </div>
-
-      {open && (
-        <nav className="koc-mobile-nav" aria-label="Mobile navigation">
-          {nav.map((item) => <Link key={item.label} href={item.href} onClick={() => setOpen(false)}>{item.label}</Link>)}
-          <Link href="/cars" onClick={() => setOpen(false)}><Heart size={14} /> Wishlist</Link>
-        </nav>
-      )}
+      {open && <nav className="koc-mobile-nav" aria-label="Mobile navigation">{nav.map((item) => <Link key={item.label} href={item.href} onClick={() => setOpen(false)}>{item.label}</Link>)}<Link href="/cars" onClick={() => setOpen(false)}><Heart size={14} /> Wishlist</Link></nav>}
     </header>
   )
 }
