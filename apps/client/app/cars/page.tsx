@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: 'Looking for quality used cars in Boksburg? Browse the King of Cars pre-owned vehicle stock.',
 }
 
-const money = (value: number | null | undefined) => value == null ? 'POA' : new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(value)
+const money = (value: number | null | undefined) => value == null ? 'POA' : `R ${Math.round(value).toLocaleString('en-ZA')}`
 const priceSteps = [25000, 50000, 75000, 100000, 150000, 200000, 300000, 400000, 500000, 700000, 1000000]
 const pageSize = 12
 
@@ -19,11 +19,11 @@ type CarSearchParams = { q?: string; make?: string; model?: string; priceFrom?: 
 function Pagination({ page, pageCount, query }: { page: number; pageCount: number; query: URLSearchParams }) {
   if (pageCount <= 1) return null
   const href = (nextPage: number) => { const next = new URLSearchParams(query); next.set('page', String(nextPage)); return `/cars?${next.toString()}` }
-  const pages = Array.from({ length: pageCount }, (_, index) => index + 1).filter((number) => number <= 4 || number === page)
+  const numbers = Array.from({ length: pageCount }, (_, index) => index + 1)
   return <nav className="koc-legacy-pagination" aria-label="Vehicle pages">
     <Link href={href(1)} className={page === 1 ? 'disabled' : ''}>First</Link>
     <Link href={href(Math.max(1, page - 1))} className={page === 1 ? 'disabled' : ''}>Previous</Link>
-    {pages.map((number) => <Link key={number} href={href(number)} className={number === page ? 'active' : ''}>{number}</Link>)}
+    {numbers.slice(0, 4).map((number) => <Link key={number} href={href(number)} className={number === page ? 'active' : ''}>{number}</Link>)}
     <Link href={href(Math.min(pageCount, page + 1))} className={page === pageCount ? 'disabled' : ''}>Next</Link>
     <Link href={href(pageCount)} className={page === pageCount ? 'disabled' : ''}>Last</Link>
   </nav>
@@ -64,7 +64,12 @@ export default async function CarsPage({ searchParams }: { searchParams: Promise
     if (transmission && car.transmission !== transmission) return false
     if (fuel && car.fuel_type !== fuel) return false
     if (year && String(car.year) !== year) return false
-    if (mileage) { const [low, high] = mileage.split('-').map(Number); if (car.mileage == null) return false; if (Number.isFinite(low) && car.mileage < low) return false; if (Number.isFinite(high) && car.mileage > high) return false }
+    if (mileage) {
+      const [low, high] = mileage.split('-').map(Number)
+      if (car.mileage == null) return false
+      if (Number.isFinite(low) && car.mileage < low) return false
+      if (Number.isFinite(high) && car.mileage > high) return false
+    }
     if (onlyPhotos && !car.image_url) return false
     return true
   }).sort((a, b) => {
@@ -79,7 +84,17 @@ export default async function CarsPage({ searchParams }: { searchParams: Promise
   const page = Math.min(Math.max(Number(params.page || 1) || 1, 1), pageCount)
   const pageVehicles = filtered.slice((page - 1) * pageSize, page * pageSize)
   const query = new URLSearchParams()
-  if (params.q) query.set('q', params.q); if (make) query.set('make', make); if (model) query.set('model', model); if (params.priceFrom) query.set('priceFrom', params.priceFrom); if (params.priceTo) query.set('priceTo', params.priceTo); if (mileage) query.set('mileage', mileage); if (transmission) query.set('transmission', transmission); if (fuel) query.set('fuel', fuel); if (year) query.set('year', year); if (onlyPhotos) query.set('onlyPhotos', '1'); if (sort !== 'featured') query.set('sort', sort)
+  if (params.q) query.set('q', params.q)
+  if (make) query.set('make', make)
+  if (model) query.set('model', model)
+  if (params.priceFrom) query.set('priceFrom', params.priceFrom)
+  if (params.priceTo) query.set('priceTo', params.priceTo)
+  if (mileage) query.set('mileage', mileage)
+  if (transmission) query.set('transmission', transmission)
+  if (fuel) query.set('fuel', fuel)
+  if (year) query.set('year', year)
+  if (onlyPhotos) query.set('onlyPhotos', '1')
+  if (sort !== 'featured') query.set('sort', sort)
 
   return <>
     <main className="koc-legacy-cars-page">
@@ -91,35 +106,40 @@ export default async function CarsPage({ searchParams }: { searchParams: Promise
         <form method="get" id="vehicle_search_area_used">
           <div className="koc-legacy-row">
             <aside className="koc-legacy-sidebar">
-              <div className="koc-legacy-stock-title">Search our vehicles in stock</div><Link href="/cars" className="koc-legacy-clear">Clear Filter</Link>
+              <div className="koc-legacy-stock-title">Search our vehicles in stock</div>
+              <Link href="/cars" className="koc-legacy-clear">Clear Filter</Link>
               <div className="koc-legacy-search"><input name="q" defaultValue={params.q || ''} placeholder="Search (EG. white demo 4x4)" aria-label="Search vehicles" /><button type="submit" aria-label="Search"><Search size={15} /></button></div>
               <div className="koc-legacy-filters">
                 {[[ 'make', 'Makes', 'All Makes', makes ], [ 'model', 'Models', 'All Models', models ], [ 'year', 'Year', 'Any Year', years ]].map(([name, label, empty, values]) => <label key={String(name)}><span>{String(label)}<ChevronDown size={10} /></span><select name={String(name)} defaultValue={name === 'make' ? make : name === 'model' ? model : year}><option value="">{String(empty)}</option>{(values as string[]).map((value) => <option key={value} value={value}>{value}</option>)}</select></label>)}
                 <label><span>Mileage<ChevronDown size={10} /></span><select name="mileage" defaultValue={mileage}><option value="">Any Mileage</option><option value="0-50000">0 - 50 000 Km</option><option value="50000-100000">50 000 - 100 000 Km</option><option value="100000-200000">100 000 - 200 000 Km</option><option value="200000-9999999">200 000+ Km</option></select></label>
                 <label><span>Price<ChevronDown size={10} /></span><select name="priceFrom" defaultValue={params.priceFrom || ''}><option value="">Price From</option>{priceSteps.map((value) => <option key={value} value={value}>{money(value)}</option>)}</select></label>
-                <label><span>&nbsp;</span><select name="priceTo" defaultValue={params.priceTo || ''}><option value="">Price To</option>{priceSteps.map((value) => <option key={value} value={value}>{money(value)}</option>)}</select></label>
+                <label><span className="koc-legacy-filter-spacer">Price</span><select name="priceTo" defaultValue={params.priceTo || ''}><option value="">Price To</option>{priceSteps.map((value) => <option key={value} value={value}>{money(value)}</option>)}</select></label>
                 <label><span>Transmission<ChevronDown size={10} /></span><select name="transmission" defaultValue={transmission}><option value="">Any</option>{transmissions.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
                 <label><span>Fuel Type<ChevronDown size={10} /></span><select name="fuel" defaultValue={fuel}><option value="">Any</option>{fuels.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
               </div>
               <label className="koc-legacy-checkbox"><input type="checkbox" name="onlyPhotos" value="1" defaultChecked={onlyPhotos} /> Only show vehicles with photos</label>
-              <button type="submit" className="koc-legacy-search-button"><Search size={13} /> SEARCH</button><Link href="/cars" className="koc-legacy-clear bottom">Clear Filter</Link>
+              <button type="submit" className="koc-legacy-search-button"><Search size={13} /> SEARCH</button>
+              <Link href="/cars" className="koc-legacy-clear bottom">Clear Filter</Link>
             </aside>
 
             <section className="koc-legacy-results">
               <div className="koc-legacy-results-top"><div className="koc-legacy-count">Showing {pageVehicles.length ? `${(page - 1) * pageSize + 1} - ${Math.min(page * pageSize, filtered.length)}` : 0} of {filtered.length} vehicles <span className="koc-legacy-time">(0.249 seconds)</span></div><Pagination page={page} pageCount={pageCount} query={query} /></div>
-              <div className="koc-legacy-sort"><select name="sort" defaultValue={sort} aria-label="Sort vehicles"><option value="featured">Sort: Featured</option><option value="price-asc">Price: Low to High</option><option value="price-desc">Price: High to Low</option><option value="mileage-asc">Mileage: Lowest</option><option value="year-desc">Year: Newest</option></select></div>
+              <div className="koc-legacy-sort"><select name="sort" defaultValue={sort} aria-label="Sort vehicles" onChange={(event) => { event.currentTarget.form?.requestSubmit() }}><option value="featured">Sort: Featured</option><option value="price-asc">Price: Low to High</option><option value="price-desc">Price: High to Low</option><option value="mileage-asc">Mileage: Lowest</option><option value="year-desc">Year: Newest</option></select></div>
               <div className="koc-legacy-vehicle-list">
-                {pageVehicles.length === 0 ? <div className="koc-vs-empty">No vehicles match your search criteria. <Link href="/cars">Clear Filters</Link></div> : pageVehicles.map((car) => <article key={car.id} className="koc-legacy-vehicle-card">
-                  <div className="koc-legacy-gallery">{car.image_url ? <img src={car.image_url} alt={`${car.year || ''} ${car.make} ${car.model}`.trim()} loading="lazy" /> : <div className="koc-legacy-no-image"><CarFront size={46} strokeWidth={1.2} /><span>No image available</span></div>}<span className="koc-legacy-image-count">▣ {car.image_count || car.images_count || 0}</span></div>
-                  <div className="koc-legacy-vehicle-main">
-                    <div className="koc-legacy-name"><strong>{car.year || '—'}</strong> {car.make} {car.model} {car.variant || ''} {car.body_type ? `• ${car.body_type}` : ''}</div>
-                    <div className="koc-legacy-price-row"><strong>{money(car.price)}</strong>{car.monthly_payment ? <span>R {Number(car.monthly_payment).toLocaleString('en-ZA')} pm</span> : null}<button type="button" className="koc-legacy-calc">▣ Calculator</button></div>
-                    <div className="koc-legacy-spec-line">{car.mileage != null && <span><Gauge size={11} /> {Number(car.mileage).toLocaleString('en-ZA')} Km</span>}{car.colour && <span><Palette size={11} /> {car.colour}</span>}</div>
-                    <div className="koc-legacy-location">● {car.location || 'Boksburg'}</div><SocialStrip />
-                    <div className="koc-legacy-buttons"><Link href={`/cars/${car.slug}`} className="more">More Info</Link><Link href={`/cars/${car.slug}`} className="enquire">Enquire</Link><Link href={`/finance?vehicle=${car.slug}&price=${car.price || ''}`} className="finance">Finance</Link><button type="button" className="compare"><Heart size={11} /> Compare</button></div>
-                  </div>
-                  <div className="koc-legacy-spec-panel"><span>{car.body_type || '—'}</span><span>{car.transmission || '—'}</span><span>{car.fuel_type || '—'}</span><span>{car.engine_size ? `${car.engine_size} L` : ''}</span>{car.power_kw ? <span>{car.power_kw} KW</span> : null}{car.torque_nm ? <span>{car.torque_nm} Nm</span> : null}{car.acceleration ? <span>{car.acceleration}</span> : null}</div>
-                </article>)}
+                {pageVehicles.length === 0 ? <div className="koc-vs-empty">No vehicles match your search criteria. <Link href="/cars">Clear Filters</Link></div> : pageVehicles.map((car) => {
+                  const imageCount = Number(car.image_count || car.images_count || 0)
+                  return <article key={car.id} className="koc-legacy-vehicle-card">
+                    <div className="koc-legacy-gallery">{car.image_url ? <img src={car.image_url} alt={`${car.year || ''} ${car.make} ${car.model}`.trim()} loading="lazy" /> : <div className="koc-legacy-no-image"><CarFront size={46} strokeWidth={1.2} /><span>No image available</span></div>}{imageCount > 0 ? <span className="koc-legacy-image-count">▣ {imageCount}</span> : null}</div>
+                    <div className="koc-legacy-vehicle-main">
+                      <div className="koc-legacy-name"><strong>{car.year || '—'}</strong> {car.make} {car.model} {car.variant || ''} {car.body_type ? `• ${car.body_type}` : ''}</div>
+                      <div className="koc-legacy-price-row"><strong>{money(car.price)}</strong>{car.monthly_payment ? <span>R {Number(car.monthly_payment).toLocaleString('en-ZA')} pm</span> : null}<button type="button" className="koc-legacy-calc">▣ Calculator</button></div>
+                      <div className="koc-legacy-spec-line">{car.mileage != null && <span><Gauge size={11} /> {Number(car.mileage).toLocaleString('en-ZA')} Km</span>}{car.colour && <span><Palette size={11} /> {car.colour}</span>}</div>
+                      <div className="koc-legacy-location">● {car.location || 'Boksburg'}</div><SocialStrip />
+                      <div className="koc-legacy-buttons"><Link href={`/cars/${car.slug}`} className="more">More Info</Link><Link href={`/cars/${car.slug}`} className="enquire">Enquire</Link><Link href={`/finance?vehicle=${car.slug}&price=${car.price || ''}`} className="finance">Finance</Link><button type="button" className="compare"><Heart size={11} /> Compare</button></div>
+                    </div>
+                    <div className="koc-legacy-spec-panel"><span>{car.body_type || '—'}</span><span>{car.transmission || '—'}</span><span>{car.fuel_type || '—'}</span>{car.engine_size ? <span>{car.engine_size} L</span> : null}{car.power_kw ? <span>{car.power_kw} KW</span> : null}{car.torque_nm ? <span>{car.torque_nm} Nm</span> : null}{car.acceleration ? <span>{car.acceleration}</span> : null}</div>
+                  </article>
+                })}
               </div>
               <Pagination page={page} pageCount={pageCount} query={query} />
             </section>
