@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "cd ../.. && pnpm exec playwright install chromium && node scripts/import-kingofcars-batch.mjs && cd apps/client && next build",
+    "build": "cd ../.. && node scripts/seed-kingofcars-batch-1.mjs && cd apps/client && next build",
     "start": "next start",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit"
