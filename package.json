@@ -23,6 +23,7 @@
     "sync:inventory": "node scripts/sync-kings-of-cars.mjs"
   },
   "dependencies": {
+    "@sparticuz/chromium": "149.0.0",
     "@supabase/supabase-js": "2.57.4",
     "playwright": "1.55.0"
   },
