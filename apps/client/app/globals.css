@@ -81,3 +81,9 @@
 .koc-vs-empty{padding:40px 20px;text-align:center;background:#fafafa;border:1px solid #e9ecef;border-radius:.25rem;color:#5d5b5a}
 @media(max-width:767px){.inner{padding:40px 15px 30px!important}}
 @media(max-width:960px){.main-header .container-fluid .row .mh-logo{position:relative;top:0;left:unset;margin:0;transform:unset;width:100%;text-align:center}}
+/* bootstrap display/flex/border utilities for vs-list-tile */
+.d-none{display:none!important}.d-flex{display:flex!important}.d-inline-flex{display:inline-flex!important}.d-block{display:block!important}.flex-column{flex-direction:column!important}.flex-fill{flex:1 1 auto!important}.align-items-center{align-items:center!important}.align-items-baseline{align-items:baseline!important}.align-self-center{align-self:center!important}.justify-content-center{justify-content:center!important}.text-center{text-align:center!important}.text-right{text-align:right!important}.w-100{width:100%!important}.mw-100{max-width:100%!important}.float-right{float:right!important}.ml-auto{margin-left:auto!important}.mr-auto{margin-right:auto!important}
+@media(min-width:992px){.d-lg-none{display:none!important}.d-lg-flex{display:flex!important}.d-lg-block{display:block!important}}
+.border-top{border-top:1px solid #dee2e6!important}.border-primary{border-color:#242424!important}.border-3{border-width:3px!important}.bg-light{background-color:#f8f9fa!important}
+.card{border:1px solid rgba(0,0,0,.125)}
+.no-gutters{margin-right:0;margin-left:0}.no-gutters>.col,.no-gutters>[class*="col-"]{padding-right:0;padding-left:0}
