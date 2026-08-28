@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Gauge, Heart, Fuel, Search, Settings2, Palette } from 'lucide-react'
+import { Gauge, Heart, Fuel, Search, Settings2, Palette, CarFront } from 'lucide-react'
 import type { Metadata } from 'next'
 import { getVehicles } from '../../lib/vehicles'
 
@@ -315,9 +315,9 @@ export default async function CarsPage({ searchParams }: { searchParams: Promise
                               {car.image_url ? (
                                 <img src={car.image_url} alt={`${car.year ?? ''} ${car.make} ${car.model}`.trim()} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                               ) : (
-                                <div className="imagePlaceHolder fa-10x text-center" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#ededed', color: '#c6c6c6' }}>
-                                  <span style={{ fontSize: '2.8rem', lineHeight: 1 }}>🚐</span>
-                                  <span style={{ display: 'block', fontSize: '.78rem', color: '#999', marginTop: 6, fontFamily: 'Lato,sans-serif' }}>No image available</span>
+                                <div className="imagePlaceHolder fa-10x text-center" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#ededed', color: '#b8b8b8' }}>
+                                  <CarFront size={42} strokeWidth={1.5} />
+                                  <span style={{ display: 'block', fontSize: '.78rem', color: '#999', marginTop: 8, fontFamily: 'Lato,sans-serif' }}>No image available</span>
                                 </div>
                               )}
                             </div>
@@ -332,13 +332,13 @@ export default async function CarsPage({ searchParams }: { searchParams: Promise
                               </span>
                             </div>
                             <div className="row no-gutters pl-2 align-items-baseline">
-                              <div className="col-6">
+                              <div className="col-7">
                                 <div className="vs-list-price text-primary font-weight-bold" style={{ fontSize: '1.15rem', lineHeight: 1 }}>
                                   {money(car.price)}
                                 </div>
                               </div>
-                              <div className="col-6 pr-0 text-right" style={{ fontSize: '.8rem', color: '#999' }}>
-                                {car.mileage != null ? `${car.mileage.toLocaleString('en-ZA')} Km` : ''}
+                              <div className="col-5 pr-0 text-right" style={{ fontSize: '.75rem', color: '#6c757d' }}>
+                                {car.body_type ?? ''}
                               </div>
                             </div>
                             <div className="ml-3 mr-3 mt-2" style={{ borderBottom: '1px solid #eee' }} />
@@ -374,6 +374,14 @@ export default async function CarsPage({ searchParams }: { searchParams: Promise
                                 <span style={{ width: 22, height: 22, background: '#25d366', color: '#fff', borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '.7rem' }}>✆</span>
                                 <span style={{ width: 22, height: 22, background: '#1877f2', color: '#fff', borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '.65rem', fontWeight: 700 }}>f</span>
                                 <span style={{ width: 22, height: 22, background: '#999', color: '#fff', borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '.65rem' }}>✉</span>
+                              </span>
+                            </div>
+                            <div className="d-flex mt-1 pl-2 align-items-center" style={{ gap: 6, fontSize: '.75rem' }}>
+                              <span className="d-inline-flex align-items-center" style={{ gap: 4, color: '#5d5b5a' }}>
+                                <span style={{ width: 22, height: 22, background: '#1877f2', color: '#fff', borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '.7rem', fontWeight: 700 }}>+</span>
+                                <span style={{ width: 22, height: 22, background: '#25d366', color: '#fff', borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '.7rem' }}>W</span>
+                                <span style={{ width: 22, height: 22, background: '#1877f2', color: '#fff', borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '.65rem', fontWeight: 700 }}>f</span>
+                                <span style={{ width: 22, height: 22, background: '#999', color: '#fff', borderRadius: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '.65rem' }}>M</span>
                               </span>
                             </div>
                             <div className="align-items-end d-flex flex-fill no-gutters ShowButtonsAtTop row mt-2">
