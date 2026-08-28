@@ -1,4 +1,4 @@
-name: Sync King of Cars inventory
+name: Sync King of Cars inventory and build
 
 on:
   push:
@@ -11,9 +11,9 @@ permissions:
   contents: read
 
 jobs:
-  sync-inventory:
+  sync-and-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,3 +51,6 @@ jobs:
               echo "Batch ${offset} failed; continuing with the next batch."
             }
           done
+
+      - name: Build application with synced inventory
+        run: pnpm build
