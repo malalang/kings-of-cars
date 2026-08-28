@@ -1,5 +1,15 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "KINGS_OF_CARS_SHOWROOM_URL",
+    "KINGS_OF_CARS_MAX_PAGES",
+    "KINGS_OF_CARS_BATCH_SIZE",
+    "KINGS_OF_CARS_BATCH_OFFSET",
+    "KINGS_OF_CARS_DETAIL_CONCURRENCY"
+  ],
   "tasks": {
     "build": { "dependsOn": ["^build"], "outputs": [".next/**", "dist/**"] },
     "dev": { "cache": false, "persistent": true },
