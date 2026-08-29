@@ -1,0 +1,7 @@
+{
+  "name": "@kings-of-cars/constants",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./Business_info.ts",
+  "types": "./Business_info.ts"
+}
