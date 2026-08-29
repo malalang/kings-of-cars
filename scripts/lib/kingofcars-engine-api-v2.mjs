@@ -35,10 +35,6 @@ function looksLikeVehicle(value) {
   ].includes(key))
 }
 
-// iX has returned several response envelopes over time. Some environments expose
-// records directly, while others wrap each record in vehicle/item/result objects.
-// Walk the whole JSON tree and unwrap one-record envelopes instead of assuming
-// `payload.vehicles` exists.
 function unwrapVehicle(value, depth = 0) {
   if (depth > 6 || !value || typeof value !== 'object' || Array.isArray(value)) return value
   for (const key of ['vehicle', 'Vehicle', 'vehicleStock', 'VehicleStock', 'vehicleData', 'VehicleData', 'item', 'Item', 'result', 'Result']) {
@@ -50,8 +46,12 @@ function unwrapVehicle(value, depth = 0) {
 function findVehicleArray(value, depth = 0) {
   if (depth > 12 || value === null || value === undefined) return null
   if (Array.isArray(value)) {
-    const unwrapped = value.map((item) => unwrapVehicle(item)).filter(Boolean)
-    if (unwrapped.length > 0 && unwrapped.every(looksLikeVehicle)) return unwrapped
+    // The iX endpoint's canonical `vehicles` array is authoritative. Do not
+    // require a particular set of vehicle property names because the API can
+    // change its field casing/naming between deployments.
+    if (value.length > 0 && value.every((item) => item && typeof item === 'object' && !Array.isArray(item))) {
+      return value.map(unwrapVehicle)
+    }
     for (const item of value) {
       const nested = findVehicleArray(item, depth + 1)
       if (nested) return nested
@@ -61,9 +61,6 @@ function findVehicleArray(value, depth = 0) {
   if (typeof value !== 'object') return null
   if (looksLikeVehicle(value)) return [value]
   for (const [key, child] of Object.entries(value)) {
-    // Do not skip whole branches merely because their envelope happens to be
-    // called price/year/etc.; iX response objects can contain vehicle arrays
-    // beneath such keys.
     if (key === '__proto__' || key === 'prototype' || key === 'constructor') continue
     const nested = findVehicleArray(child, depth + 1)
     if (nested) return nested
@@ -72,7 +69,13 @@ function findVehicleArray(value, depth = 0) {
 }
 
 function extractRows(payload) {
-  const rows = findVehicleArray(payload?.vehicles ?? payload)
+  // Prefer the exact envelope returned by the iX VehicleStockSearch API.
+  // In the live response this is a top-level `vehicles` array.
+  if (payload && Array.isArray(payload.vehicles) && payload.vehicles.length > 0) {
+    return payload.vehicles.map(unwrapVehicle)
+  }
+
+  const rows = findVehicleArray(payload)
   if (!rows) {
     const keys = payload && typeof payload === 'object' && !Array.isArray(payload) ? Object.keys(payload) : []
     throw new Error(`Could not locate vehicle array in Engine API response. topLevelKeys=${JSON.stringify(keys)} type=${Array.isArray(payload) ? 'array' : typeof payload}`)
