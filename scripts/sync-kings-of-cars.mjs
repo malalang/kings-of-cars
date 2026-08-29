@@ -6,6 +6,7 @@ import { DEALER_ID, PAGE_SIZE, API_URL, fetchInventory, mapVehicle } from './lib
 const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const MIN_EXPECTED = Number(process.env.KINGS_OF_CARS_MIN_EXPECTED ?? 250)
+const MAX_EXPECTED = Number(process.env.KINGS_OF_CARS_MAX_EXPECTED ?? 1000)
 const UPSERT_BATCH_SIZE = Number(process.env.KINGS_OF_CARS_UPSERT_BATCH_SIZE ?? 50)
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
@@ -90,16 +91,16 @@ async function main() {
   console.log(`Engine API returned ${sourceRows.length} vehicles; finalCount=${finalCount}`)
   console.log(`Request payload: ${JSON.stringify(payload)}`)
 
-  if (!finalCount || finalCount < MIN_EXPECTED) {
-    throw new Error(`Unexpected source inventory count ${finalCount}. Refusing to modify production inventory.`)
+  if (!finalCount || finalCount < MIN_EXPECTED || finalCount > MAX_EXPECTED) {
+    throw new Error(`Unexpected source inventory count ${finalCount}; expected ${MIN_EXPECTED}-${MAX_EXPECTED}. Refusing to modify production inventory.`)
   }
 
   const vehicles = sourceRows.map(mapVehicle).filter((vehicle) => vehicle.slug && vehicle.model)
   const unique = [...new Map(vehicles.map((vehicle) => [vehicle.slug, vehicle])).values()]
   console.log(`Mapped ${unique.length} unique vehicles.`)
 
-  if (unique.length < Math.min(MIN_EXPECTED, Math.floor(finalCount * 0.9))) {
-    throw new Error(`Only mapped ${unique.length} of expected ${finalCount}. Refusing to delete stale inventory.`)
+  if (unique.length < Math.min(MIN_EXPECTED, Math.floor(finalCount * 0.9)) || unique.length > MAX_EXPECTED) {
+    throw new Error(`Mapped ${unique.length} vehicles from expected source count ${finalCount}. Refusing to modify production inventory.`)
   }
 
   const importedRows = []
