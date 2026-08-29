@@ -92,14 +92,11 @@ export async function fetchInventory() {
   return { rows: all, finalCount, partial, payload: { LimitToDealer: [DEALER_ID], pageSize: PAGE_SIZE } }
 }
 
-// iX Engine responses have used several naming conventions over time. Resolve
-// fields case-insensitively and through common nested objects so the database
-// receives the actual dealer metadata instead of silently storing nulls.
 function valuesByName(vehicle, names) {
   const wanted = new Set(names.map((name) => name.toLowerCase()))
   const found = []
   const walk = (obj, depth = 0) => {
-    if (!obj || typeof obj !== 'object' || depth > 2) return
+    if (!obj || typeof obj !== 'object' || depth > 3) return
     for (const [key, value] of Object.entries(obj)) {
       if (wanted.has(key.toLowerCase())) found.push(value)
       if (value && typeof value === 'object' && !Array.isArray(value)) walk(value, depth + 1)
@@ -113,6 +110,19 @@ function field(vehicle, names, fallback = null) {
   return first(...valuesByName(vehicle, names), fallback)
 }
 
+function diagnosticKeys(vehicle) {
+  const keys = new Set()
+  const walk = (obj, depth = 0) => {
+    if (!obj || typeof obj !== 'object' || depth > 2) return
+    for (const [key, value] of Object.entries(obj)) {
+      keys.add(key)
+      if (value && typeof value === 'object' && !Array.isArray(value)) walk(value, depth + 1)
+    }
+  }
+  walk(vehicle)
+  return [...keys].sort()
+}
+
 export function mapVehicle(vehicle) {
   const images = [
     field(vehicle, ['imageUrl', 'imageURL', 'primaryImage', 'primaryImageUrl', 'mainImage', 'thumbnail']),
@@ -122,36 +132,38 @@ export function mapVehicle(vehicle) {
 
   const stockNumber = clean(first(field(vehicle, ['stockNumber', 'stockNo', 'stockCode', 'stock', 'reference', 'stockId', 'vehicleId', 'vin', 'vehicleStockId', 'id']), null)) || null
   const year = integerValue(field(vehicle, ['year', 'modelYear', 'yearOfManufacture', 'manufactureYear']))
-  const make = clean(first(field(vehicle, ['make', 'manufacturer', 'brand', 'makeName', 'manufacturerName']), 'Unknown')) || 'Unknown'
-  const model = clean(first(field(vehicle, ['model', 'vehicleModel', 'modelName', 'modelDescription']), null)) || clean(first(field(vehicle, ['description', 'title', 'name']), `Vehicle ${stockNumber ?? ''}`)) || `Vehicle ${stockNumber ?? ''}`.trim()
-  const variant = clean(first(field(vehicle, ['variant', 'derivative', 'trim', 'vehicleConfiguration', 'variantName', 'derivativeName']), null)) || null
-  const sourceUrl = first(field(vehicle, ['sourceUrl', 'url', 'detailUrl', 'vehicleUrl', 'link']), null) || null
+  const make = clean(first(field(vehicle, ['make', 'manufacturer', 'brand', 'makeName', 'manufacturerName', 'makeDescription']), 'Unknown')) || 'Unknown'
+  const model = clean(first(field(vehicle, ['model', 'vehicleModel', 'modelName', 'modelDescription']), null)) || clean(first(field(vehicle, ['description', 'title', 'name', 'vehicleName']), `Vehicle ${stockNumber ?? ''}`)) || `Vehicle ${stockNumber ?? ''}`.trim()
+  const variant = clean(first(field(vehicle, ['variant', 'derivative', 'trim', 'vehicleConfiguration', 'variantName', 'derivativeName', 'vehicleVariant']), null)) || null
+  const sourceUrl = first(field(vehicle, ['sourceUrl', 'url', 'detailUrl', 'vehicleUrl', 'link', 'stockUrl']), null) || null
   const price = numberValue(field(vehicle, ['price', 'sellingPrice', 'cashPrice', 'salePrice', 'retailPrice', 'vehiclePrice']))
   const monthlyPayment = numberValue(field(vehicle, ['monthlyPayment', 'monthly', 'payment', 'instalment', 'installment']))
   const mileage = integerValue(field(vehicle, ['mileage', 'odometer', 'km', 'kilometres', 'kilometers', 'odometerReading']))
   const powerKw = integerValue(field(vehicle, ['powerKw', 'powerKW', 'kw', 'kilowatts']))
-  const bodyType = clean(first(field(vehicle, ['bodyType', 'body', 'bodyStyle', 'shape', 'shapeName', 'vehicleShape', 'vehicleType']), null)) || null
-  const transmission = clean(first(field(vehicle, ['transmission', 'gearbox', 'gearboxType', 'transmissionType', 'gearType']), null)) || null
-  const fuelType = clean(first(field(vehicle, ['fuelType', 'fuel', 'fuelTypeName', 'fuelName', 'fuelDescription']), null)) || null
-  const colour = clean(first(field(vehicle, ['colour', 'color', 'exteriorColour', 'exteriorColor', 'colourName', 'colorName']), null)) || null
-  const engineSize = clean(first(field(vehicle, ['engineSize', 'engine', 'engineCapacity', 'engineCC', 'capacity']), null)) || null
-  const description = clean(first(field(vehicle, ['description', 'comments', 'overview', 'title', 'name']), [year, make, model, variant].filter(Boolean).join(' '))) || null
+  const bodyType = clean(first(field(vehicle, ['bodyType', 'body', 'bodyStyle', 'shape', 'shapeName', 'vehicleShape', 'vehicleType', 'vehicleBodyType', 'bodyDescription']), null)) || null
+  const transmission = clean(first(field(vehicle, ['transmission', 'gearbox', 'gearboxType', 'transmissionType', 'gearType', 'transmissionDescription']), null)) || null
+  const fuelType = clean(first(field(vehicle, ['fuelType', 'fuel', 'fuelTypeName', 'fuelName', 'fuelDescription', 'fuelTypeDescription']), null)) || null
+  const colour = clean(first(field(vehicle, ['colour', 'color', 'exteriorColour', 'exteriorColor', 'colourName', 'colorName', 'exteriorColourName']), null)) || null
+  const engineSize = clean(first(field(vehicle, ['engineSize', 'engine', 'engineCapacity', 'engineCC', 'capacity', 'engineDescription']), null)) || null
+  const description = clean(first(field(vehicle, ['description', 'comments', 'overview', 'title', 'name'], [year, make, model, variant].filter(Boolean).join(' ')))) || null
   const features = [...new Set([...asArray(field(vehicle, ['features', 'optionalExtras', 'equipment', 'extras'])), ...valuesByName(vehicle, ['feature', 'extra'])].flatMap(asArray).map(clean).filter(Boolean))]
   const healthCheck = field(vehicle, ['healthCheck', 'vehicleHealthCheck', 'healthCheckStatus'], null)
   const identity = stockNumber || sourceUrl || `${year}-${make}-${model}`
   const slug = clean(`${year ?? ''}-${make}-${model}-${variant ?? ''}-${identity}`).toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-  const vehicleName = clean([year, make, model, variant].filter(Boolean).join(' ')) || model
+  const vehicleName = clean(first(field(vehicle, ['vehicleName', 'displayName', 'fullName', 'title', 'description']), [year, make, model, variant].filter(Boolean).join(' '))) || model
 
   return {
+    vehicle_name: vehicleName,
     stock_number: stockNumber, slug, make, model, variant, year, mileage, price, monthly_payment: monthlyPayment,
     body_type: bodyType, transmission, fuel_type: fuelType, colour, engine_size: engineSize, power_kw: powerKw,
-    description, overview: clean(first(field(vehicle, ['overview'], null), description)) || null,
+    description, overview: clean(first(field(vehicle, ['overview']), description)) || null,
     features, health_check: healthCheck, image_url: uniqueImages[0] ?? null, gallery_urls: uniqueImages,
     status: 'available', featured: false, source_url: sourceUrl, source_updated_at: new Date().toISOString(),
-    // Keep the canonical display name in health_check metadata without requiring
-    // a schema change; the UI should construct the visible title from these fields.
-    ...(vehicleName ? { health_check: { ...(healthCheck && typeof healthCheck === 'object' ? healthCheck : {}), source_vehicle_name: vehicleName } } : {}),
   }
+}
+
+export function getVehicleDiagnostic(vehicle) {
+  return diagnosticKeys(vehicle)
 }
 
 export { DEALER_ID, PAGE_SIZE, API_URL, MIN_SYNC_ROWS }
