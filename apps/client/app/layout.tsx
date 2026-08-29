@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { SiteHeader } from '../components/site-header'
+import { WhatsAppFloat } from '../components/whatsapp-float'
 import './globals.css'
 import './cars/cars-page.css'
 
@@ -9,5 +10,5 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body><SiteHeader />{children}</body></html>
+  return <html lang="en"><body><SiteHeader />{children}<WhatsAppFloat /></body></html>
 }
