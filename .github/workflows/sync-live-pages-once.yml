@@ -1,0 +1,57 @@
+name: One-time King of Cars live-page enrichment
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sync-live-pages-once.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  enrich-live-pages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Enrich existing available vehicles from live King of Cars pages
+        env:
+          SUPABASE_URL: ${{ secrets.KINGS_OF_CARS_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.KINGS_OF_CARS_SUPABASE_SERVICE_ROLE_KEY }}
+          KINGS_OF_CARS_LIVE_CONCURRENCY: 4
+          KINGS_OF_CARS_MIN_SYNC_ROWS: 50
+        run: npm run sync:live-pages
+
+      - name: Verify live enrichment fields
+        env:
+          SUPABASE_URL: ${{ secrets.KINGS_OF_CARS_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.KINGS_OF_CARS_SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { createClient } from '@supabase/supabase-js'
+          const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } })
+          const { data, error } = await supabase.from('KingsOfCars_vehicles').select('id,fuel_type,transmission,body_type,image_url,source_url').eq('status','available')
+          if (error) throw error
+          const rows = data ?? []
+          const missing = {
+            fuel_type: rows.filter(r => !r.fuel_type).length,
+            transmission: rows.filter(r => !r.transmission).length,
+            body_type: rows.filter(r => !r.body_type).length,
+            image_url: rows.filter(r => !r.image_url).length,
+            source_url: rows.filter(r => !r.source_url).length,
+          }
+          console.log(JSON.stringify({ available: rows.length, missing }, null, 2))
+          if (missing.fuel_type || missing.transmission || missing.body_type || missing.source_url) process.exit(1)
+          NODE
