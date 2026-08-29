@@ -1,11 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X, Maximize2 } from 'lucide-react'
 
-type VehicleGalleryProps = { images?: string[] | null; fallback?: string | null; alt: string }
+type VehicleGalleryProps = {
+  images?: string[] | null
+  fallback?: string | null
+  alt: string
+  variant?: 'basic' | 'square' | 'full'
+}
 
-export function VehicleGallery({ images, fallback, alt }: VehicleGalleryProps) {
+export function VehicleGallery({ images, fallback, alt, variant = 'basic' }: VehicleGalleryProps) {
   const gallery = Array.from(new Set([...(images ?? []), ...(fallback ? [fallback] : [])].filter((url): url is string => typeof url === 'string' && url.trim().length > 0)))
   const [index, setIndex] = useState(0)
   const [open, setOpen] = useState(false)
@@ -30,13 +35,24 @@ export function VehicleGallery({ images, fallback, alt }: VehicleGalleryProps) {
   const next = () => setIndex((value) => (value + 1) % gallery.length)
 
   return <>
-    <button type="button" className="koc-gallery-click-target" onClick={() => setOpen(true)} aria-label={`Open full gallery for ${alt}`}>
-      <div className="koc-legacy-gallery">
-        <img src={current} alt={alt} loading="lazy" />
-        <div className="koc-legacy-gallery-shade" aria-hidden="true" />
-        <span className="koc-legacy-gallery-count">{gallery.length} {gallery.length === 1 ? 'IMAGE' : 'IMAGES'}</span>
+    {variant === 'full' ? (
+      <div className="koc-detail-gallery-grid">
+        {gallery.map((image, imageIndex) => (
+          <button key={`${image}-${imageIndex}`} type="button" className={`koc-detail-gallery-tile${imageIndex === 0 ? ' featured' : ''}`} onClick={() => { setIndex(imageIndex); setOpen(true) }} aria-label={`Open image ${imageIndex + 1} of ${gallery.length}`}>
+            <img src={image} alt={`${alt} — image ${imageIndex + 1}`} loading={imageIndex < 4 ? 'eager' : 'lazy'} />
+            <span className="koc-detail-gallery-tile-overlay"><Maximize2 size={18} /><span>{imageIndex + 1}</span></span>
+          </button>
+        ))}
       </div>
-    </button>
+    ) : (
+      <button type="button" className={`koc-gallery-click-target${variant === 'square' ? ' koc-gallery-square' : ''}`} onClick={() => setOpen(true)} aria-label={`Open full gallery for ${alt}`}>
+        <div className="koc-legacy-gallery">
+          <img src={current} alt={alt} loading="eager" />
+          <div className="koc-legacy-gallery-shade" aria-hidden="true" />
+          <span className="koc-legacy-gallery-count">{gallery.length} {gallery.length === 1 ? 'IMAGE' : 'IMAGES'}</span>
+        </div>
+      </button>
+    )}
 
     {open && <div className="koc-gallery-lightbox" role="dialog" aria-modal="true" aria-label={`${alt} photo gallery`} onClick={() => setOpen(false)}>
       <button type="button" className="koc-gallery-lightbox-close" onClick={() => setOpen(false)} aria-label="Close gallery"><X size={24} /></button>
