@@ -19,17 +19,20 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
   return <main className="koc-shell">
     <section style={{background:'#111',color:'#fff',padding:'28px 0 64px'}}><div className="koc-container">
       <Link href="/cars" style={{display:'inline-flex',alignItems:'center',gap:8,color:'rgba(255,255,255,.65)',fontSize:11,fontWeight:800,textTransform:'uppercase',letterSpacing:'.12em'}}>← Back to showroom</Link>
-      <div className="koc-detail-hero-grid">
-        <div className="koc-detail-hero-media"><VehicleGallery images={gallery} alt={title} variant="square" /></div>
-        <div className="koc-detail-hero-copy"><div className="koc-kicker" style={{color:'#e33a48'}}>Vehicle details</div><h1 className="koc-display" style={{fontSize:'clamp(38px,5vw,70px)',marginTop:10}}>{car.make} {car.model}</h1>{car.variant && <p style={{color:'rgba(255,255,255,.62)',marginTop:8,fontSize:15}}>{car.variant}</p>}<div style={{fontSize:30,fontWeight:900,marginTop:22}}>{money(car.price)}</div><div style={{display:'flex',gap:8,alignItems:'center',marginTop:12,color:'rgba(255,255,255,.55)',fontSize:11}}><MapPin size={13}/> {car.location || 'Boksburg'}</div></div>
+      <div style={{display:'grid',gridTemplateColumns:'minmax(0,1.2fr) minmax(300px,.8fr)',gap:36,marginTop:30,alignItems:'center'}}>
+        <div style={{width:'100%',maxWidth:760}}><VehicleGallery images={gallery} alt={title} variant="square" /></div>
+        <div><div className="koc-kicker" style={{color:'#e33a48'}}>Vehicle details</div><h1 className="koc-display" style={{fontSize:'clamp(38px,5vw,70px)',marginTop:10}}>{car.make} {car.model}</h1>{car.variant && <p style={{color:'rgba(255,255,255,.62)',marginTop:8,fontSize:15}}>{car.variant}</p>}<div style={{fontSize:30,fontWeight:900,marginTop:22}}>{money(car.price)}</div><div style={{display:'flex',gap:8,alignItems:'center',marginTop:12,color:'rgba(255,255,255,.55)',fontSize:11}}><MapPin size={13}/> {car.location || 'Boksburg'}</div></div>
       </div>
     </div></section>
 
     <section style={{padding:'54px 0 70px'}}><div className="koc-container">
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:10}}>{specs.map(([label,value,Icon])=><div className="koc-card" key={String(label)} style={{padding:20}}>{Icon ? <Icon size={17} color="var(--koc-red)"/> : null}<div style={{fontSize:10,textTransform:'uppercase',letterSpacing:'.12em',fontWeight:900,color:'var(--koc-muted)',marginTop:Icon?10:0}}>{label}</div><div style={{fontWeight:900,marginTop:7}}>{value || '—'}</div></div>)}</div>
 
-      <section className="koc-detail-full-gallery">
-        <div className="koc-detail-gallery-heading"><div><div className="koc-kicker">Vehicle gallery</div><h2 className="koc-display" style={{fontSize:'clamp(34px,4vw,54px)',marginTop:8}}>Every angle</h2><p>Explore the vehicle from every side. Select any photograph to open the full-screen gallery.</p></div><div className="koc-detail-gallery-count"><Camera size={18}/><strong>{gallery.length}</strong><span>photos</span></div></div>
+      <section style={{marginTop:64}}>
+        <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',gap:24,marginBottom:24,flexWrap:'wrap'}}>
+          <div><div className="koc-kicker">Vehicle gallery</div><h2 className="koc-display" style={{fontSize:'clamp(34px,4vw,54px)',marginTop:8}}>Every angle</h2><p style={{color:'var(--koc-muted)',margin:'12px 0 0',lineHeight:1.6}}>A visual walk-around of this vehicle. Click any photograph to view it full screen.</p></div>
+          <div style={{display:'inline-flex',alignItems:'center',gap:9,border:'1px solid var(--koc-line)',background:'#fff',padding:'12px 16px',fontSize:11,textTransform:'uppercase',letterSpacing:'.1em'}}><Camera size={17} color="var(--koc-red)"/><strong>{gallery.length}</strong><span style={{color:'var(--koc-muted)'}}>photos</span></div>
+        </div>
         <VehicleGallery images={gallery} alt={title} variant="full" />
       </section>
 
