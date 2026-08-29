@@ -13,7 +13,7 @@ permissions:
 jobs:
   sync-and-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,24 +33,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Install Chromium
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Import live King of Cars inventory in batches
+      - name: Sync full live King of Cars inventory
         env:
           SUPABASE_URL: ${{ secrets.KINGS_OF_CARS_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.KINGS_OF_CARS_SUPABASE_SERVICE_ROLE_KEY }}
-          KINGS_OF_CARS_MAX_PAGES: 40
-          KINGS_OF_CARS_BATCH_SIZE: 20
-          KINGS_OF_CARS_DETAIL_CONCURRENCY: 3
-        run: |
-          set -u
-          for offset in $(seq 0 20 380); do
-            echo "===== King of Cars batch offset ${offset} ====="
-            KINGS_OF_CARS_BATCH_OFFSET=${offset} pnpm exec node scripts/import-kingofcars-batch.mjs || {
-              echo "Batch ${offset} failed; continuing with the next batch."
-            }
-          done
+          KINGS_OF_CARS_DEALER_ID: 13400
+          KINGS_OF_CARS_PAGE_SIZE: 500
+          KINGS_OF_CARS_MIN_EXPECTED: 250
+        run: pnpm sync:inventory
 
       - name: Build application with synced inventory
         run: pnpm build
