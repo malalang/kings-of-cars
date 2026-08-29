@@ -33,36 +33,37 @@ export function VehicleGallery({ images, fallback, alt, variant = 'basic' }: Veh
   const current = gallery[index] ?? gallery[0]
   const previous = () => setIndex((value) => (value - 1 + gallery.length) % gallery.length)
   const next = () => setIndex((value) => (value + 1) % gallery.length)
+  const openAt = (imageIndex: number) => { setIndex(imageIndex); setOpen(true) }
 
   return <>
     {variant === 'full' ? (
-      <div className="koc-detail-gallery-grid">
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,minmax(0,1fr))',gridAutoRows:'minmax(180px,18vw)',gap:10}}>
         {gallery.map((image, imageIndex) => (
-          <button key={`${image}-${imageIndex}`} type="button" className={`koc-detail-gallery-tile${imageIndex === 0 ? ' featured' : ''}`} onClick={() => { setIndex(imageIndex); setOpen(true) }} aria-label={`Open image ${imageIndex + 1} of ${gallery.length}`}>
-            <img src={image} alt={`${alt} — image ${imageIndex + 1}`} loading={imageIndex < 4 ? 'eager' : 'lazy'} />
-            <span className="koc-detail-gallery-tile-overlay"><Maximize2 size={18} /><span>{imageIndex + 1}</span></span>
+          <button key={`${image}-${imageIndex}`} type="button" onClick={() => openAt(imageIndex)} aria-label={`Open image ${imageIndex + 1} of ${gallery.length}`} style={{position:'relative',display:'block',width:'100%',height:'100%',padding:0,border:0,overflow:'hidden',background:'#171717',cursor:'zoom-in',gridColumn:imageIndex === 0 ? 'span 2' : undefined,gridRow:imageIndex === 0 ? 'span 2' : undefined}}>
+            <img src={image} alt={`${alt} — image ${imageIndex + 1}`} loading={imageIndex < 4 ? 'eager' : 'lazy'} style={{width:'100%',height:'100%',objectFit:'cover',display:'block',transition:'transform .45s'}} />
+            <span style={{position:'absolute',inset:0,display:'flex',alignItems:'flex-end',justifyContent:'space-between',padding:14,background:'linear-gradient(transparent 55%,rgba(0,0,0,.72))',color:'#fff',opacity:.95}}><Maximize2 size={17}/><span style={{fontSize:11,fontWeight:900,letterSpacing:'.12em'}}>{imageIndex + 1}</span></span>
           </button>
         ))}
       </div>
     ) : (
-      <button type="button" className={`koc-gallery-click-target${variant === 'square' ? ' koc-gallery-square' : ''}`} onClick={() => setOpen(true)} aria-label={`Open full gallery for ${alt}`}>
-        <div className="koc-legacy-gallery">
-          <img src={current} alt={alt} loading="eager" />
+      <button type="button" onClick={() => setOpen(true)} aria-label={`Open full gallery for ${alt}`} style={{display:'block',width:'100%',padding:0,border:0,background:'transparent',cursor:'zoom-in'}}>
+        <div className="koc-legacy-gallery" style={variant === 'square' ? {aspectRatio:'1 / 1',height:'auto',minHeight:0} : undefined}>
+          <img src={current} alt={alt} loading="eager" style={variant === 'square' ? {width:'100%',height:'100%',objectFit:'cover',display:'block'} : undefined} />
           <div className="koc-legacy-gallery-shade" aria-hidden="true" />
           <span className="koc-legacy-gallery-count">{gallery.length} {gallery.length === 1 ? 'IMAGE' : 'IMAGES'}</span>
         </div>
       </button>
     )}
 
-    {open && <div className="koc-gallery-lightbox" role="dialog" aria-modal="true" aria-label={`${alt} photo gallery`} onClick={() => setOpen(false)}>
-      <button type="button" className="koc-gallery-lightbox-close" onClick={() => setOpen(false)} aria-label="Close gallery"><X size={24} /></button>
-      <div className="koc-gallery-lightbox-content" onClick={(event) => event.stopPropagation()}>
-        <img src={current} alt={`${alt} — image ${index + 1} of ${gallery.length}`} loading="eager" />
+    {open && <div role="dialog" aria-modal="true" aria-label={`${alt} photo gallery`} onClick={() => setOpen(false)} style={{position:'fixed',inset:0,zIndex:9999,background:'rgba(0,0,0,.96)',display:'flex',alignItems:'center',justifyContent:'center',padding:'28px 60px'}}>
+      <button type="button" onClick={() => setOpen(false)} aria-label="Close gallery" style={{position:'fixed',top:18,right:18,zIndex:3,width:46,height:46,display:'grid',placeItems:'center',border:'1px solid rgba(255,255,255,.25)',borderRadius:'50%',background:'rgba(0,0,0,.55)',color:'#fff',cursor:'pointer'}}><X size={24}/></button>
+      <div onClick={(event) => event.stopPropagation()} style={{position:'relative',width:'min(92vw,1400px)',height:'min(88vh,900px)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <img src={current} alt={`${alt} — image ${index + 1} of ${gallery.length}`} loading="eager" style={{maxWidth:'100%',maxHeight:'100%',width:'auto',height:'auto',objectFit:'contain',display:'block'}} />
         {gallery.length > 1 && <>
-          <button type="button" className="koc-legacy-gallery-nav prev" onClick={previous} aria-label="Previous vehicle image"><ChevronLeft size={30} /></button>
-          <button type="button" className="koc-legacy-gallery-nav next" onClick={next} aria-label="Next vehicle image"><ChevronRight size={30} /></button>
+          <button type="button" onClick={previous} aria-label="Previous vehicle image" style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',width:48,height:48,border:'1px solid rgba(255,255,255,.22)',borderRadius:'50%',background:'rgba(0,0,0,.58)',color:'#fff',display:'grid',placeItems:'center',cursor:'pointer'}}><ChevronLeft size={30}/></button>
+          <button type="button" onClick={next} aria-label="Next vehicle image" style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',width:48,height:48,border:'1px solid rgba(255,255,255,.22)',borderRadius:'50%',background:'rgba(0,0,0,.58)',color:'#fff',display:'grid',placeItems:'center',cursor:'pointer'}}><ChevronRight size={30}/></button>
         </>}
-        <span className="koc-gallery-lightbox-counter">{index + 1} / {gallery.length}</span>
+        <span style={{position:'absolute',left:'50%',bottom:-34,transform:'translateX(-50%)',color:'rgba(255,255,255,.78)',fontSize:11,fontWeight:900,letterSpacing:'.14em'}}>{index + 1} / {gallery.length}</span>
       </div>
     </div>}
   </>
