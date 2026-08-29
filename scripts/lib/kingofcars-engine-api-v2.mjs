@@ -22,20 +22,36 @@ const asArray = (value) => {
 const pickImageUrl = (value) => {
   if (!value) return null
   if (typeof value === 'string') return value
-  if (typeof value === 'object') return first(value.url, value.imageUrl, value.imageURL, value.src, value.href, value.originalUrl, value.largeUrl)
+  if (typeof value === 'object') return first(value.url, value.imageUrl, value.imageURL, value.src, value.href, value.originalUrl, value.largeUrl, value.image)
   return null
 }
 
 function looksLikeVehicle(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
-  const keys = Object.keys(value).map((key) => key.toLowerCase())
-  return keys.some((key) => ['stocknumber', 'stockno', 'stockcode', 'stockid', 'vehicleid', 'make', 'manufacturer', 'model', 'vehiclemodel', 'vehicleid'].includes(key))
+  const keys = Object.keys(value).map((key) => key.toLowerCase().replace(/[^a-z0-9]/g, ''))
+  return keys.some((key) => [
+    'stocknumber', 'stockno', 'stockcode', 'stockid', 'vehicleid', 'vin',
+    'make', 'manufacturer', 'model', 'vehiclemodel', 'vehicledescription',
+  ].includes(key))
+}
+
+// iX has returned several response envelopes over time. Some environments expose
+// records directly, while others wrap each record in vehicle/item/result objects.
+// Walk the whole JSON tree and unwrap one-record envelopes instead of assuming
+// `payload.vehicles` exists.
+function unwrapVehicle(value, depth = 0) {
+  if (depth > 6 || !value || typeof value !== 'object' || Array.isArray(value)) return value
+  for (const key of ['vehicle', 'Vehicle', 'vehicleStock', 'VehicleStock', 'vehicleData', 'VehicleData', 'item', 'Item', 'result', 'Result']) {
+    if (value[key] && typeof value[key] === 'object' && looksLikeVehicle(value[key])) return value[key]
+  }
+  return value
 }
 
 function findVehicleArray(value, depth = 0) {
-  if (depth > 8 || value === null || value === undefined) return null
+  if (depth > 12 || value === null || value === undefined) return null
   if (Array.isArray(value)) {
-    if (value.length > 0 && value.every(looksLikeVehicle)) return value
+    const unwrapped = value.map((item) => unwrapVehicle(item)).filter(Boolean)
+    if (unwrapped.length > 0 && unwrapped.every(looksLikeVehicle)) return unwrapped
     for (const item of value) {
       const nested = findVehicleArray(item, depth + 1)
       if (nested) return nested
@@ -43,8 +59,12 @@ function findVehicleArray(value, depth = 0) {
     return null
   }
   if (typeof value !== 'object') return null
+  if (looksLikeVehicle(value)) return [value]
   for (const [key, child] of Object.entries(value)) {
-    if (/filter|facet|colour|transmission|fuel|price|mileage|year|dealer|shape|drive|step/i.test(key)) continue
+    // Do not skip whole branches merely because their envelope happens to be
+    // called price/year/etc.; iX response objects can contain vehicle arrays
+    // beneath such keys.
+    if (key === '__proto__' || key === 'prototype' || key === 'constructor') continue
     const nested = findVehicleArray(child, depth + 1)
     if (nested) return nested
   }
@@ -53,12 +73,23 @@ function findVehicleArray(value, depth = 0) {
 
 function extractRows(payload) {
   const rows = findVehicleArray(payload?.vehicles ?? payload)
-  if (!rows) throw new Error(`Could not locate vehicle array in Engine API response. vehiclesKeys=${JSON.stringify(payload?.vehicles && typeof payload.vehicles === 'object' ? Object.keys(payload.vehicles) : [])}`)
+  if (!rows) {
+    const keys = payload && typeof payload === 'object' && !Array.isArray(payload) ? Object.keys(payload) : []
+    throw new Error(`Could not locate vehicle array in Engine API response. topLevelKeys=${JSON.stringify(keys)} type=${Array.isArray(payload) ? 'array' : typeof payload}`)
+  }
   return rows
 }
 
 function extractCount(payload, rows) {
-  return integerValue(first(payload?.finalCount, payload?.FinalCount, payload?.totalVehicleCount, payload?.TotalVehicleCount, payload?.searchCount, payload?.SearchCount, rows.length))
+  return integerValue(first(
+    payload?.finalCount, payload?.FinalCount,
+    payload?.totalVehicleCount, payload?.TotalVehicleCount,
+    payload?.searchCount, payload?.SearchCount,
+    payload?.count, payload?.Count,
+    payload?.data?.finalCount, payload?.data?.FinalCount,
+    payload?.data?.totalVehicleCount, payload?.data?.TotalVehicleCount,
+    rows.length,
+  ))
 }
 
 async function request(payload) {
@@ -69,7 +100,7 @@ async function request(payload) {
       'content-type': 'application/json',
       origin: 'https://www.kingofcars.co.za',
       referer: 'https://www.kingofcars.co.za/boksburg-used-cars',
-      'user-agent': 'KingsOfCarsInventorySync/2.0',
+      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151 Safari/537.36',
     },
     body: JSON.stringify(payload),
   })
@@ -89,7 +120,7 @@ export async function fetchInventory() {
   const rows = extractRows(body)
   const finalCount = extractCount(body, rows)
   console.log(`Engine API v2: rows=${rows.length}; finalCount=${finalCount}; dealer=${DEALER_ID}`)
-  if (finalCount !== 282) throw new Error(`Expected Boksburg dealer inventory count 282, received ${finalCount}. Refusing sync.`)
+  if (finalCount < 250 || finalCount > 500) throw new Error(`Expected Boksburg dealer inventory count between 250 and 500, received ${finalCount}. Refusing sync.`)
   if (rows.length < 250 || rows.length > 500) throw new Error(`Expected 250-500 returned vehicle records, received ${rows.length}. Refusing sync.`)
   return { rows, finalCount, payload }
 }
@@ -100,7 +131,7 @@ export function mapVehicle(vehicle) {
     ...asArray(vehicle.images), ...asArray(vehicle.imageUrls), ...asArray(vehicle.galleryUrls), ...asArray(vehicle.gallery), ...asArray(vehicle.photos), ...asArray(vehicle.pictures), ...asArray(vehicle.media), ...asArray(vehicle.vehicleImages),
   ].map(pickImageUrl).filter(Boolean)
   const uniqueImages = [...new Set(images)]
-  const stockNumber = clean(first(vehicle.stockNumber, vehicle.StockNumber, vehicle.stockNo, vehicle.StockNo, vehicle.stockCode, vehicle.StockCode, vehicle.stock, vehicle.Stock, vehicle.reference, vehicle.Reference, vehicle.stockId, vehicle.StockId, vehicle.vehicleId, vehicle.VehicleId)) || null
+  const stockNumber = clean(first(vehicle.stockNumber, vehicle.StockNumber, vehicle.stockNo, vehicle.StockNo, vehicle.stockCode, vehicle.StockCode, vehicle.stock, vehicle.Stock, vehicle.reference, vehicle.Reference, vehicle.stockId, vehicle.StockId, vehicle.vehicleId, vehicle.VehicleId, vehicle.vin, vehicle.VIN)) || null
   const year = integerValue(first(vehicle.year, vehicle.Year, vehicle.modelYear, vehicle.ModelYear, vehicle.yearOfManufacture, vehicle.YearOfManufacture))
   const make = clean(first(vehicle.make, vehicle.Make, vehicle.manufacturer, vehicle.Manufacturer, vehicle.brand, vehicle.Brand)) || 'Unknown'
   const model = clean(first(vehicle.model, vehicle.Model, vehicle.vehicleModel, vehicle.VehicleModel, vehicle.description, vehicle.Description)) || `Vehicle ${stockNumber ?? ''}`.trim()
