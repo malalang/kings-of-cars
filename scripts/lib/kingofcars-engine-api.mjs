@@ -38,7 +38,7 @@ function extractRows(payload) {
   for (const candidate of candidates) {
     if (Array.isArray(candidate)) return candidate
     if (candidate && typeof candidate === 'object') {
-      for (const nested of [candidate.items, candidate.results, candidate.vehicles, candidate.data, candidate.records, candidate.Rows]) {
+      for (const nested of [candidate.items, candidate.results, candidate.vehicles, candidate.data, candidate.records, candidate.Rows, candidate.rows, candidate.vehicleStock, candidate.VehicleStock, candidate.stock, candidate.Stock, candidate.list, candidate.List]) {
         if (Array.isArray(nested)) return nested
       }
     }
@@ -77,8 +77,6 @@ export async function fetchInventory() {
     { LimitToDealer: [DEALER_ID], page: 1, pageSize: PAGE_SIZE },
     { LimitToDealer: [DEALER_ID], Page: 1, PageSize: PAGE_SIZE },
     { limitToDealer: [DEALER_ID], page: 1, pageSize: PAGE_SIZE },
-    { filter: { LimitToDealer: [DEALER_ID] }, page: 1, pageSize: PAGE_SIZE },
-    { filters: { LimitToDealer: [DEALER_ID] }, page: 1, pageSize: PAGE_SIZE },
   ]
   let lastError
   for (const payload of payloads) {
@@ -88,8 +86,10 @@ export async function fetchInventory() {
       const finalCount = extractCount(body, rows)
       console.log(`Engine API attempt ${JSON.stringify(payload)} -> rows=${rows.length}, finalCount=${finalCount}`)
       if (rows.length > 0) return { rows, finalCount, payload }
-      console.log(`Engine API response keys: ${JSON.stringify(body && typeof body === 'object' ? Object.keys(body) : typeof body)}`)
-      if (typeof body === 'object') console.log(`Engine API response sample: ${JSON.stringify(body).slice(0, 2000)}`)
+      if (body?.vehicles && typeof body.vehicles === 'object') {
+        console.log(`Engine API vehicles keys: ${JSON.stringify(Object.keys(body.vehicles))}`)
+        console.log(`Engine API vehicles sample: ${JSON.stringify(body.vehicles).slice(0, 3000)}`)
+      }
     } catch (error) {
       lastError = error
       console.warn(`Engine API attempt failed: ${error.message}`)
