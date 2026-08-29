@@ -6,7 +6,7 @@
   "engines": { "node": "22.x" },
   "scripts": {
     "dev": "turbo run dev --parallel",
-    "build": "pnpm sync:inventory && turbo run build --concurrency=1",
+    "build": "turbo run build --concurrency=1",
     "start": "turbo run start",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
