@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "cd ../.. && node scripts/sync-kings-of-cars.mjs && cd apps/client && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit"
