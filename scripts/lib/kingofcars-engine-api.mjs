@@ -129,7 +129,7 @@ export function mapVehicle(vehicle) {
     health_check: vehicle.healthCheck ?? vehicle.HealthCheck ?? null,
     image_url: images[0] ?? null,
     gallery_urls: images,
-    status: clean(first(vehicle.status, vehicle.Status, vehicle.availability, vehicle.Availability)) || 'available',
+    status: 'available',
     featured: false,
     source_url: sourceUrl,
     source_updated_at: new Date().toISOString(),
