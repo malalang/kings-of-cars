@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Heart, Menu, Phone, X } from 'lucide-react'
 import { useState } from 'react'
+import { BUSINESS_INFO } from '@kings-of-cars/constants/Business_info'
 
 const nav = [
   { label: 'Home', href: '/' },
@@ -15,8 +16,6 @@ const nav = [
   { label: 'Contact Us', href: '/contact' },
 ]
 
-const phones = ['010 823 9006', '010 492 6780', '011 594 2556', '011 918 9210']
-
 export function SiteHeader() {
   const [open, setOpen] = useState(false)
 
@@ -25,23 +24,26 @@ export function SiteHeader() {
       <div className="koc-header-top">
         <div className="koc-container koc-header-top-inner">
           <div className="koc-legacy-top-left">
-            <Link href="/">King of Cars</Link>
+            <Link href="/">{BUSINESS_INFO.brandName}</Link>
             <Link href="/cars" className="koc-wishlist"><Heart size={12} fill="currentColor" /> Wishlist</Link>
           </div>
           <div className="koc-legacy-top-phones">
-            {phones.map((phone) => <a key={phone} href={`tel:${phone.replace(/\s/g, '')}`}><Phone size={9} /> {phone}</a>)}
+            {BUSINESS_INFO.phones.map((phone) => <a key={phone} href={`tel:${phone.replace(/\s/g, '')}`}><Phone size={9} /> {phone}</a>)}
           </div>
         </div>
       </div>
 
       <div className="koc-header-main">
         <div className="koc-container koc-header-main-inner">
-          <Link href="/" className="koc-brand" aria-label="King of Cars home">
-            <Image src="/logo.png" alt="King of Cars" width={180} height={64} priority className="koc-logo" />
+          <Link href="/" className="koc-brand" aria-label={`${BUSINESS_INFO.brandName} home`}>
+            <Image src="/logo.png" alt={BUSINESS_INFO.brandName} width={180} height={64} priority className="koc-logo" />
           </Link>
           <nav className="koc-desktop-nav" aria-label="Main navigation">
             {nav.map((item) => <Link key={item.label} href={item.href}>{item.label}</Link>)}
           </nav>
+          <a className="koc-header-whatsapp" href={`${BUSINESS_INFO.whatsapp.baseUrl}?text=${encodeURIComponent(BUSINESS_INFO.messages.general)}`} target="_blank" rel="noopener noreferrer" aria-label="Chat with King of Cars on WhatsApp">
+            WhatsApp
+          </a>
           <button className="koc-menu-button" type="button" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen(!open)}>
             {open ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -51,6 +53,7 @@ export function SiteHeader() {
       {open && (
         <nav className="koc-mobile-nav" aria-label="Mobile navigation">
           {nav.map((item) => <Link key={item.label} href={item.href} onClick={() => setOpen(false)}>{item.label}</Link>)}
+          <a href={`${BUSINESS_INFO.whatsapp.baseUrl}?text=${encodeURIComponent(BUSINESS_INFO.messages.general)}`} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>WhatsApp</a>
           <Link href="/cars" onClick={() => setOpen(false)}><Heart size={14} /> Wishlist</Link>
         </nav>
       )}
