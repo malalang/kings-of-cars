@@ -1,6 +1,7 @@
 const API_URL = process.env.KINGS_OF_CARS_ENGINE_API_URL ?? 'https://engineapi.e5.ix.co.za/api/v1.0/vehiclestocksearch/filter'
 const DEALER_ID = Number(process.env.KINGS_OF_CARS_DEALER_ID ?? 13400)
 const PAGE_SIZE = Math.min(Number(process.env.KINGS_OF_CARS_PAGE_SIZE ?? 100), 100)
+const MIN_SYNC_ROWS = Math.max(Number(process.env.KINGS_OF_CARS_MIN_SYNC_ROWS ?? 50), 1)
 
 const clean = (value) => String(value ?? '').replace(/\s+/g, ' ').trim()
 const first = (...values) => values.find((value) => value !== undefined && value !== null && value !== '')
@@ -87,9 +88,10 @@ export async function fetchInventory() {
   const seen = new Set()
   let finalCount = null
 
-  // The iX endpoint advertises a larger count but can silently cap a single
-  // response. Fetch explicit pages and combine them. This is important for
-  // Vercel, where we must never mistake a partial page for the full inventory.
+  // iX can report a larger search count than the rows exposed by the dealer
+  // filter. Fetch explicit pages and keep every unique row returned. A partial
+  // result is safe to import; the caller disables destructive stale-row cleanup
+  // when the source count is larger than the rows actually returned.
   for (let page = 1; page <= 10; page += 1) {
     const payload = { LimitToDealer: [DEALER_ID], page, pageSize: PAGE_SIZE }
     const body = await request(payload)
@@ -108,16 +110,17 @@ export async function fetchInventory() {
     }
     console.log(`Engine API v2: page=${page}; rows=${rows.length}; added=${added}; collected=${all.length}; finalCount=${count}; dealer=${DEALER_ID}`)
 
-    if (all.length >= finalCount) break
     if (rows.length === 0 || added === 0) break
+    if (finalCount !== null && all.length >= finalCount) break
   }
 
   if (finalCount === null) finalCount = all.length
-  console.log(`Engine API v2 COMPLETE: rows=${all.length}; finalCount=${finalCount}; dealer=${DEALER_ID}`)
+  const partial = all.length < finalCount
+  console.log(`Engine API v2 COMPLETE: rows=${all.length}; finalCount=${finalCount}; dealer=${DEALER_ID}; partial=${partial}`)
+  if (partial) console.warn(`Engine API v2 WARNING: source reports ${finalCount} vehicles but returned ${all.length}; importing returned rows without destructive stale-row deletion.`)
 
-  if (finalCount < 250 || finalCount > 500) throw new Error(`Expected Boksburg dealer inventory count between 250 and 500, received ${finalCount}. Refusing sync.`)
-  if (all.length < 250 || all.length > 500) throw new Error(`Expected 250-500 returned vehicle records after pagination, received ${all.length}. Refusing sync.`)
-  return { rows: all, finalCount, payload: { LimitToDealer: [DEALER_ID], pageSize: PAGE_SIZE } }
+  if (all.length < MIN_SYNC_ROWS) throw new Error(`Expected at least ${MIN_SYNC_ROWS} returned vehicle records, received ${all.length}. Refusing sync.`)
+  return { rows: all, finalCount, partial, payload: { LimitToDealer: [DEALER_ID], pageSize: PAGE_SIZE } }
 }
 
 export function mapVehicle(vehicle) {
@@ -154,4 +157,4 @@ export function mapVehicle(vehicle) {
   }
 }
 
-export { DEALER_ID, PAGE_SIZE, API_URL }
+export { DEALER_ID, PAGE_SIZE, API_URL, MIN_SYNC_ROWS }
