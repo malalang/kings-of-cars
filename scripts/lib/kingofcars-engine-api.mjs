@@ -34,11 +34,11 @@ function extractImages(vehicle) {
 }
 
 function extractRows(payload) {
-  const candidates = [payload?.vehicles, payload?.Vehicles, payload?.results, payload?.Results, payload?.items, payload?.Items, payload?.data, payload?.Data, payload?.stock, payload?.Stock]
+  const candidates = [payload?.vehicles, payload?.Vehicles, payload?.results, payload?.Results, payload?.items, payload?.Items, payload?.data, payload?.Data, payload?.stock, payload?.Stock, payload?.vehicleStock, payload?.VehicleStock, payload?.records, payload?.Records]
   for (const candidate of candidates) {
     if (Array.isArray(candidate)) return candidate
     if (candidate && typeof candidate === 'object') {
-      for (const nested of [candidate.items, candidate.results, candidate.vehicles, candidate.data]) {
+      for (const nested of [candidate.items, candidate.results, candidate.vehicles, candidate.data, candidate.records, candidate.Rows]) {
         if (Array.isArray(nested)) return nested
       }
     }
@@ -47,7 +47,7 @@ function extractRows(payload) {
 }
 
 function extractCount(payload, rows) {
-  return integerValue(first(payload?.finalCount, payload?.FinalCount, payload?.totalCount, payload?.TotalCount, payload?.count, payload?.Count, payload?.pagination?.total, payload?.Pagination?.Total, rows.length))
+  return integerValue(first(payload?.finalCount, payload?.FinalCount, payload?.totalCount, payload?.TotalCount, payload?.count, payload?.Count, payload?.pagination?.total, payload?.Pagination?.Total, payload?.total, payload?.Total, rows.length))
 }
 
 async function request(payload) {
@@ -57,7 +57,7 @@ async function request(payload) {
       accept: 'application/json, text/plain, */*',
       'content-type': 'application/json',
       origin: 'https://www.kingofcars.co.za',
-      referer: 'https://www.kingofcars.co.za/',
+      referer: 'https://www.kingofcars.co.za/boksburg-used-cars',
       'user-agent': 'KingsOfCarsInventorySync/1.0',
     },
     body: JSON.stringify(payload),
@@ -66,7 +66,7 @@ async function request(payload) {
   let body
   try { body = JSON.parse(text) } catch { body = text }
   if (!response.ok) {
-    const detail = typeof body === 'string' ? body.slice(0, 500) : JSON.stringify(body).slice(0, 500)
+    const detail = typeof body === 'string' ? body.slice(0, 1000) : JSON.stringify(body).slice(0, 1000)
     throw new Error(`King of Cars API ${response.status}: ${detail}`)
   }
   return body
@@ -77,14 +77,23 @@ export async function fetchInventory() {
     { LimitToDealer: [DEALER_ID], page: 1, pageSize: PAGE_SIZE },
     { LimitToDealer: [DEALER_ID], Page: 1, PageSize: PAGE_SIZE },
     { limitToDealer: [DEALER_ID], page: 1, pageSize: PAGE_SIZE },
+    { filter: { LimitToDealer: [DEALER_ID] }, page: 1, pageSize: PAGE_SIZE },
+    { filters: { LimitToDealer: [DEALER_ID] }, page: 1, pageSize: PAGE_SIZE },
   ]
   let lastError
   for (const payload of payloads) {
     try {
       const body = await request(payload)
       const rows = extractRows(body)
-      if (rows.length > 0) return { rows, finalCount: extractCount(body, rows), payload }
-    } catch (error) { lastError = error }
+      const finalCount = extractCount(body, rows)
+      console.log(`Engine API attempt ${JSON.stringify(payload)} -> rows=${rows.length}, finalCount=${finalCount}`)
+      if (rows.length > 0) return { rows, finalCount, payload }
+      console.log(`Engine API response keys: ${JSON.stringify(body && typeof body === 'object' ? Object.keys(body) : typeof body)}`)
+      if (typeof body === 'object') console.log(`Engine API response sample: ${JSON.stringify(body).slice(0, 2000)}`)
+    } catch (error) {
+      lastError = error
+      console.warn(`Engine API attempt failed: ${error.message}`)
+    }
   }
   throw lastError ?? new Error('King of Cars API returned no vehicle rows.')
 }
