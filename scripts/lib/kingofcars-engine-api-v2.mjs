@@ -1,6 +1,6 @@
 const API_URL = process.env.KINGS_OF_CARS_ENGINE_API_URL ?? 'https://engineapi.e5.ix.co.za/api/v1.0/vehiclestocksearch/filter'
 const DEALER_ID = Number(process.env.KINGS_OF_CARS_DEALER_ID ?? 13400)
-const PAGE_SIZE = Number(process.env.KINGS_OF_CARS_PAGE_SIZE ?? 500)
+const PAGE_SIZE = Math.min(Number(process.env.KINGS_OF_CARS_PAGE_SIZE ?? 100), 100)
 
 const clean = (value) => String(value ?? '').replace(/\s+/g, ' ').trim()
 const first = (...values) => values.find((value) => value !== undefined && value !== null && value !== '')
@@ -26,61 +26,18 @@ const pickImageUrl = (value) => {
   return null
 }
 
-function looksLikeVehicle(value) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
-  const keys = Object.keys(value).map((key) => key.toLowerCase().replace(/[^a-z0-9]/g, ''))
-  return keys.some((key) => [
-    'stocknumber', 'stockno', 'stockcode', 'stockid', 'vehicleid', 'vin',
-    'make', 'manufacturer', 'model', 'vehiclemodel', 'vehicledescription',
-  ].includes(key))
-}
-
 function unwrapVehicle(value, depth = 0) {
   if (depth > 6 || !value || typeof value !== 'object' || Array.isArray(value)) return value
   for (const key of ['vehicle', 'Vehicle', 'vehicleStock', 'VehicleStock', 'vehicleData', 'VehicleData', 'item', 'Item', 'result', 'Result']) {
-    if (value[key] && typeof value[key] === 'object' && looksLikeVehicle(value[key])) return value[key]
+    if (value[key] && typeof value[key] === 'object' && !Array.isArray(value[key])) return value[key]
   }
   return value
 }
 
-function findVehicleArray(value, depth = 0) {
-  if (depth > 12 || value === null || value === undefined) return null
-  if (Array.isArray(value)) {
-    // The iX endpoint's canonical `vehicles` array is authoritative. Do not
-    // require a particular set of vehicle property names because the API can
-    // change its field casing/naming between deployments.
-    if (value.length > 0 && value.every((item) => item && typeof item === 'object' && !Array.isArray(item))) {
-      return value.map(unwrapVehicle)
-    }
-    for (const item of value) {
-      const nested = findVehicleArray(item, depth + 1)
-      if (nested) return nested
-    }
-    return null
-  }
-  if (typeof value !== 'object') return null
-  if (looksLikeVehicle(value)) return [value]
-  for (const [key, child] of Object.entries(value)) {
-    if (key === '__proto__' || key === 'prototype' || key === 'constructor') continue
-    const nested = findVehicleArray(child, depth + 1)
-    if (nested) return nested
-  }
-  return null
-}
-
 function extractRows(payload) {
-  // Prefer the exact envelope returned by the iX VehicleStockSearch API.
-  // In the live response this is a top-level `vehicles` array.
-  if (payload && Array.isArray(payload.vehicles) && payload.vehicles.length > 0) {
-    return payload.vehicles.map(unwrapVehicle)
-  }
-
-  const rows = findVehicleArray(payload)
-  if (!rows) {
-    const keys = payload && typeof payload === 'object' && !Array.isArray(payload) ? Object.keys(payload) : []
-    throw new Error(`Could not locate vehicle array in Engine API response. topLevelKeys=${JSON.stringify(keys)} type=${Array.isArray(payload) ? 'array' : typeof payload}`)
-  }
-  return rows
+  if (payload && Array.isArray(payload.vehicles)) return payload.vehicles.map(unwrapVehicle)
+  if (Array.isArray(payload)) return payload.map(unwrapVehicle)
+  throw new Error(`Could not locate vehicle array in Engine API response. topLevelKeys=${JSON.stringify(payload && typeof payload === 'object' ? Object.keys(payload) : [])} type=${Array.isArray(payload) ? 'array' : typeof payload}`)
 }
 
 function extractCount(payload, rows) {
@@ -89,8 +46,6 @@ function extractCount(payload, rows) {
     payload?.totalVehicleCount, payload?.TotalVehicleCount,
     payload?.searchCount, payload?.SearchCount,
     payload?.count, payload?.Count,
-    payload?.data?.finalCount, payload?.data?.FinalCount,
-    payload?.data?.totalVehicleCount, payload?.data?.TotalVehicleCount,
     rows.length,
   ))
 }
@@ -117,15 +72,52 @@ async function request(payload) {
   return body
 }
 
+function vehicleIdentity(vehicle) {
+  return clean(first(
+    vehicle.stockNumber, vehicle.StockNumber, vehicle.stockNo, vehicle.StockNo,
+    vehicle.stockCode, vehicle.StockCode, vehicle.stock, vehicle.Stock,
+    vehicle.reference, vehicle.Reference, vehicle.stockId, vehicle.StockId,
+    vehicle.vehicleId, vehicle.VehicleId, vehicle.vin, vehicle.VIN,
+    vehicle.sourceUrl, vehicle.SourceUrl, vehicle.url, vehicle.Url,
+  ))
+}
+
 export async function fetchInventory() {
-  const payload = { LimitToDealer: [DEALER_ID], page: 1, pageSize: PAGE_SIZE }
-  const body = await request(payload)
-  const rows = extractRows(body)
-  const finalCount = extractCount(body, rows)
-  console.log(`Engine API v2: rows=${rows.length}; finalCount=${finalCount}; dealer=${DEALER_ID}`)
+  const all = []
+  const seen = new Set()
+  let finalCount = null
+
+  // The iX endpoint advertises a larger count but can silently cap a single
+  // response. Fetch explicit pages and combine them. This is important for
+  // Vercel, where we must never mistake a partial page for the full inventory.
+  for (let page = 1; page <= 10; page += 1) {
+    const payload = { LimitToDealer: [DEALER_ID], page, pageSize: PAGE_SIZE }
+    const body = await request(payload)
+    const rows = extractRows(body)
+    const count = extractCount(body, rows)
+    if (finalCount === null) finalCount = count
+
+    let added = 0
+    for (const row of rows) {
+      const key = vehicleIdentity(row) || JSON.stringify(row)
+      if (!seen.has(key)) {
+        seen.add(key)
+        all.push(row)
+        added += 1
+      }
+    }
+    console.log(`Engine API v2: page=${page}; rows=${rows.length}; added=${added}; collected=${all.length}; finalCount=${count}; dealer=${DEALER_ID}`)
+
+    if (all.length >= finalCount) break
+    if (rows.length === 0 || added === 0) break
+  }
+
+  if (finalCount === null) finalCount = all.length
+  console.log(`Engine API v2 COMPLETE: rows=${all.length}; finalCount=${finalCount}; dealer=${DEALER_ID}`)
+
   if (finalCount < 250 || finalCount > 500) throw new Error(`Expected Boksburg dealer inventory count between 250 and 500, received ${finalCount}. Refusing sync.`)
-  if (rows.length < 250 || rows.length > 500) throw new Error(`Expected 250-500 returned vehicle records, received ${rows.length}. Refusing sync.`)
-  return { rows, finalCount, payload }
+  if (all.length < 250 || all.length > 500) throw new Error(`Expected 250-500 returned vehicle records after pagination, received ${all.length}. Refusing sync.`)
+  return { rows: all, finalCount, payload: { LimitToDealer: [DEALER_ID], pageSize: PAGE_SIZE } }
 }
 
 export function mapVehicle(vehicle) {
@@ -149,31 +141,16 @@ export function mapVehicle(vehicle) {
   const identity = stockNumber || sourceUrl || `${year}-${make}-${model}`
   const slug = clean(`${year ?? ''}-${make}-${model}-${variant ?? ''}-${identity}`).toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
   return {
-    stock_number: stockNumber,
-    slug,
-    make,
-    model,
-    variant,
-    year,
-    mileage,
-    price,
-    monthly_payment: monthlyPayment,
+    stock_number: stockNumber, slug, make, model, variant, year, mileage, price, monthly_payment: monthlyPayment,
     body_type: clean(first(vehicle.bodyType, vehicle.BodyType, vehicle.body, vehicle.Body)) || null,
     transmission: clean(first(vehicle.transmission, vehicle.Transmission, vehicle.gearbox, vehicle.Gearbox)) || null,
     fuel_type: clean(first(vehicle.fuelType, vehicle.FuelType, vehicle.fuel, vehicle.Fuel)) || null,
     colour: clean(first(vehicle.colour, vehicle.Colour, vehicle.color, vehicle.Color, vehicle.exteriorColour, vehicle.ExteriorColour)) || null,
     engine_size: clean(first(vehicle.engineSize, vehicle.EngineSize, vehicle.engine, vehicle.Engine, vehicle.engineCapacity, vehicle.EngineCapacity)) || null,
-    power_kw: powerKw,
-    description,
-    overview: clean(first(vehicle.overview, vehicle.Overview, description)) || null,
-    features,
-    health_check: vehicle.healthCheck ?? vehicle.HealthCheck ?? null,
-    image_url: uniqueImages[0] ?? null,
-    gallery_urls: uniqueImages,
-    status: 'available',
-    featured: false,
-    source_url: sourceUrl,
-    source_updated_at: new Date().toISOString(),
+    power_kw: powerKw, description, overview: clean(first(vehicle.overview, vehicle.Overview, description)) || null,
+    features, health_check: vehicle.healthCheck ?? vehicle.HealthCheck ?? null,
+    image_url: uniqueImages[0] ?? null, gallery_urls: uniqueImages, status: 'available', featured: false,
+    source_url: sourceUrl, source_updated_at: new Date().toISOString(),
   }
 }
 
