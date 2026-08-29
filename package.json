@@ -20,7 +20,8 @@
     "lint:admin": "pnpm --filter @kings-of-cars/admin lint",
     "typecheck:web": "pnpm --filter @kings-of-cars/web typecheck",
     "typecheck:admin": "pnpm --filter @kings-of-cars/admin typecheck",
-    "sync:inventory": "node scripts/sync-kings-of-cars-v2.mjs"
+    "sync:inventory": "node scripts/sync-kings-of-cars-v2.mjs",
+    "sync:live-pages": "node scripts/sync-kings-of-cars-live-pages.mjs"
   },
   "dependencies": {
     "@sparticuz/chromium": "149.0.0",
