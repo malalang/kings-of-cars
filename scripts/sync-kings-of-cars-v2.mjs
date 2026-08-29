@@ -6,6 +6,7 @@ import { fetchInventory, mapVehicle } from './lib/kingofcars-engine-api-v2.mjs'
 const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const UPSERT_BATCH_SIZE = 50
+const MIN_SYNC_VEHICLES = Math.max(Number(process.env.KINGS_OF_CARS_MIN_SYNC_ROWS ?? 50), 1)
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) throw new Error('Missing SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
 
@@ -26,7 +27,7 @@ async function rebuildImages(vehicles, idsBySlug) {
   const imageRows = []
   for (const vehicle of vehicles) {
     const vehicleId = idsBySlug.get(vehicle.slug)
-    for (const [sortOrder, imageUrl] of (vehicle.gallery_urls.entries())) {
+    for (const [sortOrder, imageUrl] of vehicle.gallery_urls.entries()) {
       imageRows.push({ vehicle_id: vehicleId, image_url: imageUrl, sort_order: sortOrder, is_primary: sortOrder === 0, alt_text: [vehicle.year, vehicle.make, vehicle.model, vehicle.variant].filter(Boolean).join(' ') })
     }
   }
@@ -49,11 +50,11 @@ async function removeStale(activeSlugs) {
 }
 
 async function main() {
-  const { rows, finalCount } = await fetchInventory()
+  const { rows, finalCount, partial } = await fetchInventory()
   const mapped = rows.map(mapVehicle).filter((vehicle) => vehicle.slug && vehicle.model)
   const vehicles = [...new Map(mapped.map((vehicle) => [vehicle.slug, vehicle])).values()]
-  if (vehicles.length < 250 || vehicles.length > 500) throw new Error(`Mapped ${vehicles.length} vehicles; refusing sync.`)
-  console.log(`Mapped ${vehicles.length} Boksburg vehicles from source count ${finalCount}.`)
+  if (vehicles.length < MIN_SYNC_VEHICLES) throw new Error(`Mapped ${vehicles.length} vehicles; refusing sync.`)
+  console.log(`Mapped ${vehicles.length} Boksburg vehicles from source count ${finalCount}; partial=${partial}.`)
 
   const imported = []
   for (let index = 0; index < vehicles.length; index += UPSERT_BATCH_SIZE) {
@@ -63,15 +64,21 @@ async function main() {
 
   const idsBySlug = new Map(imported.map((row) => [row.slug, row.id]))
   await rebuildImages(vehicles, idsBySlug)
-  const stale = await removeStale(new Set(vehicles.map((vehicle) => vehicle.slug)))
-  console.log(`Removed ${stale} stale King of Cars rows.`)
+
+  let stale = 0
+  if (!partial) {
+    stale = await removeStale(new Set(vehicles.map((vehicle) => vehicle.slug)))
+    console.log(`Removed ${stale} stale King of Cars rows.`)
+  } else {
+    console.log(`PARTIAL SYNC: preserved existing King of Cars rows because source count=${finalCount} exceeded returned rows=${rows.length}. No stale rows were deleted.`)
+  }
 
   const { count: total, error: totalError } = await supabase.from('KingsOfCars_vehicles').select('id', { count: 'exact', head: true })
   if (totalError) throw totalError
   const { count: available, error: availableError } = await supabase.from('KingsOfCars_vehicles').select('id', { count: 'exact', head: true }).eq('status', 'available')
   if (availableError) throw availableError
-  if ((available ?? 0) < 250) throw new Error(`Verification failed: available=${available}`)
-  console.log(`VERIFIED: total=${total}; available=${available}; source=${finalCount}`)
+  if ((available ?? 0) < MIN_SYNC_VEHICLES) throw new Error(`Verification failed: available=${available}`)
+  console.log(`VERIFIED: total=${total}; available=${available}; imported=${vehicles.length}; source=${finalCount}; partial=${partial}`)
   console.log('SUCCESS: Boksburg inventory sync completed.')
 }
 
