@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@kings-of-cars/constants": "workspace:*",
     "@supabase/supabase-js": "2.57.4",
     "next": "catalog:",
     "react": "catalog:",
