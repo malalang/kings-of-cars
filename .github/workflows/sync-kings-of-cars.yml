@@ -13,7 +13,7 @@ permissions:
 jobs:
   sync-and-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,15 +22,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.9
-          run_install: false
+          cache: npm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: npm install --no-audit --no-fund
 
       - name: Sync full live King of Cars inventory through iX Engine API
         env:
@@ -39,7 +34,13 @@ jobs:
           KINGS_OF_CARS_DEALER_ID: 13400
           KINGS_OF_CARS_PAGE_SIZE: 500
           KINGS_OF_CARS_MIN_EXPECTED: 250
-        run: pnpm sync:inventory
+        run: npm run sync:inventory
+
+      - name: Verify database inventory
+        env:
+          SUPABASE_URL: ${{ secrets.KINGS_OF_CARS_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.KINGS_OF_CARS_SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/verify-kings-of-cars-inventory.mjs
 
       - name: Build application with synced inventory
-        run: pnpm build
+        run: npm run build:web
