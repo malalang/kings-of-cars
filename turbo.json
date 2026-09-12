@@ -22,6 +22,7 @@
       "cache": false,
       "outputs": [".next/**", "dist/**"]
     },
+    "clean": { "cache": false },
     "dev": { "cache": false, "persistent": true },
     "lint": {},
     "typecheck": {}

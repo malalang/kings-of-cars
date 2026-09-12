@@ -7,16 +7,17 @@
     "build": "pnpm --dir ../.. sync:inventory && next build",
     "start": "next start",
     "lint": "biome check .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf .next"
   },
   "dependencies": {
     "@kings-of-cars/constants": "workspace:*",
-    "@supabase/supabase-js": "2.57.4",
+    "@supabase/supabase-js": "catalog:",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "lucide-react": "catalog:",
-    "react-icons": "^5.5.0"
+    "react-icons": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",

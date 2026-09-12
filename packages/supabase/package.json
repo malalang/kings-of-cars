@@ -12,9 +12,12 @@
     "./Mutations/cars": "./src/Mutations/cars.ts",
     "./Mutations/leads": "./src/Mutations/leads.ts"
   },
+  "scripts": {
+    "supabase:types": "supabase gen types typescript --local > src/supabaseType.ts"
+  },
   "dependencies": {
-    "@supabase/ssr": "latest",
-    "@supabase/supabase-js": "latest"
+    "@supabase/ssr": "catalog:",
+    "@supabase/supabase-js": "catalog:"
   },
   "devDependencies": {
     "typescript": "catalog:"
