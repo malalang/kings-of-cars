@@ -13,7 +13,7 @@ if (!SUPABASE_URL || !SERVICE_ROLE_KEY) throw new Error('Missing SUPABASE_URL/NE
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } })
 
 async function upsert(rows) {
-  const { data, error } = await supabase.from('KingsOfCars_vehicles').upsert(rows, { onConflict: 'slug' }).select('id,slug')
+  const { data, error } = await supabase.from('KingsOfCars_vehicles').upsert(rows, { onConflict: 'stock_number' }).select('id,slug')
   if (error) throw error
   return data ?? []
 }
@@ -52,7 +52,8 @@ async function removeStale(activeSlugs) {
 async function main() {
   const { rows, finalCount, partial } = await fetchInventory()
   const mapped = rows.map(mapVehicle).filter((vehicle) => vehicle.slug && vehicle.model)
-  const vehicles = [...new Map(mapped.map((vehicle) => [vehicle.slug, vehicle])).values()]
+  const bySlug = [...new Map(mapped.map((vehicle) => [vehicle.slug, vehicle])).values()]
+  const vehicles = bySlug.filter((vehicle, index) => vehicle.stock_number === null || bySlug.findIndex((candidate) => candidate.stock_number === vehicle.stock_number) === index)
   if (vehicles.length < MIN_SYNC_VEHICLES) throw new Error(`Mapped ${vehicles.length} vehicles; refusing sync.`)
   console.log(`Mapped ${vehicles.length} Boksburg vehicles from source count ${finalCount}; partial=${partial}.`)
 
