@@ -52,7 +52,10 @@ catalogs:
 importers:
 
   .:
-    dependencies:
+    devDependencies:
+      '@biomejs/biome':
+        specifier: 'catalog:'
+        version: 2.2.0
       '@sparticuz/chromium':
         specifier: 149.0.0
         version: 149.0.0
@@ -62,10 +65,6 @@ importers:
       playwright:
         specifier: 1.55.0
         version: 1.55.0
-    devDependencies:
-      '@biomejs/biome':
-        specifier: 'catalog:'
-        version: 2.2.0
       turbo:
         specifier: 'catalog:'
         version: 2.10.13
