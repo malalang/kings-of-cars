@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from "zod";
 
 export const financeApplicationInputSchema = z.object({
   fullName: z.string().min(2),
@@ -9,6 +9,8 @@ export const financeApplicationInputSchema = z.object({
   depositAmount: z.number().nonnegative().optional(),
   carId: z.string().uuid().optional(),
   notes: z.string().max(5000).optional(),
-})
+});
 
-export type FinanceApplicationInput = z.infer<typeof financeApplicationInputSchema>
+export type FinanceApplicationInput = z.infer<
+  typeof financeApplicationInputSchema
+>;

@@ -1,15 +1,25 @@
-type SupabaseClientLike = {
-  from: (table: string) => any
-}
+import type { LeadInput } from "@kings-of-cars/contracts/lead";
+import { createSupabasePublicClient } from "../server";
 
-export async function createLead(supabase: SupabaseClientLike, input: Record<string, unknown>) {
-  const { data, error } = await supabase.from('leads').insert(input).select('*').single()
-  if (error) throw error
-  return data
-}
+export async function submitLead(input: LeadInput) {
+  const supabase = createSupabasePublicClient();
+  const { data, error } = await supabase
+    .from("KingsOfCars_leads")
+    .insert({
+      vehicle_id: input.carId ?? null,
+      name: input.name,
+      email: input.email,
+      phone: input.phone,
+      message: input.message ?? null,
+      source: "website",
+      status: "new",
+    })
+    .select("id")
+    .single();
 
-export async function updateLead(supabase: SupabaseClientLike, id: string, input: Record<string, unknown>) {
-  const { data, error } = await supabase.from('leads').update(input).eq('id', id).select('*').single()
-  if (error) throw error
-  return data
+  if (error) {
+    throw new Error(`Unable to submit enquiry: ${error.message}`);
+  }
+
+  return data;
 }

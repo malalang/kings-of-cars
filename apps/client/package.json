@@ -11,8 +11,8 @@
     "clean": "rm -rf .next"
   },
   "dependencies": {
-    "@kings-of-cars/constants": "workspace:*",
-    "@supabase/supabase-js": "catalog:",
+    "@kings-of-cars/contracts": "workspace:*",
+    "@kings-of-cars/supabase": "workspace:*",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

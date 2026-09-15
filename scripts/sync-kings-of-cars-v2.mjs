@@ -1,86 +1,154 @@
 #!/usr/bin/env node
 
-import { createClient } from '@supabase/supabase-js'
-import { fetchInventory, mapVehicle } from './lib/kingofcars-engine-api-v2.mjs'
+import { createClient } from "@supabase/supabase-js";
+import { fetchInventory, mapVehicle } from "./lib/kingofcars-engine-api-v2.mjs";
 
-const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL
-const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-const UPSERT_BATCH_SIZE = 50
-const MIN_SYNC_VEHICLES = Math.max(Number(process.env.KINGS_OF_CARS_MIN_SYNC_ROWS ?? 50), 1)
+const SUPABASE_URL =
+  process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const UPSERT_BATCH_SIZE = 50;
+const MIN_SYNC_VEHICLES = Math.max(
+  Number(process.env.KINGS_OF_CARS_MIN_SYNC_ROWS ?? 50),
+  1,
+);
 
-if (!SUPABASE_URL || !SERVICE_ROLE_KEY) throw new Error('Missing SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
+if (!SUPABASE_URL || !SERVICE_ROLE_KEY)
+  throw new Error(
+    "Missing SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY",
+  );
 
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } })
+const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+  auth: { persistSession: false, autoRefreshToken: false },
+});
 
 async function upsert(rows) {
-  const { data, error } = await supabase.from('KingsOfCars_vehicles').upsert(rows, { onConflict: 'stock_number' }).select('id,slug')
-  if (error) throw error
-  return data ?? []
+  const { data, error } = await supabase
+    .from("KingsOfCars_vehicles")
+    .upsert(rows, { onConflict: "stock_number" })
+    .select("id,slug");
+  if (error) throw error;
+  return data ?? [];
 }
 
 async function rebuildImages(vehicles, idsBySlug) {
-  const ids = vehicles.map((vehicle) => idsBySlug.get(vehicle.slug)).filter(Boolean)
-  if (!ids.length) return
-  const { error: deleteError } = await supabase.from('KingsOfCars_vehicle_images').delete().in('vehicle_id', ids)
-  if (deleteError) throw deleteError
+  const ids = vehicles
+    .map((vehicle) => idsBySlug.get(vehicle.slug))
+    .filter(Boolean);
+  if (!ids.length) return;
+  const { error: deleteError } = await supabase
+    .from("KingsOfCars_vehicle_images")
+    .delete()
+    .in("vehicle_id", ids);
+  if (deleteError) throw deleteError;
 
-  const imageRows = []
+  const imageRows = [];
   for (const vehicle of vehicles) {
-    const vehicleId = idsBySlug.get(vehicle.slug)
+    const vehicleId = idsBySlug.get(vehicle.slug);
     for (const [sortOrder, imageUrl] of vehicle.gallery_urls.entries()) {
-      imageRows.push({ vehicle_id: vehicleId, image_url: imageUrl, sort_order: sortOrder, is_primary: sortOrder === 0, alt_text: [vehicle.year, vehicle.make, vehicle.model, vehicle.variant].filter(Boolean).join(' ') })
+      imageRows.push({
+        vehicle_id: vehicleId,
+        image_url: imageUrl,
+        sort_order: sortOrder,
+        is_primary: sortOrder === 0,
+        alt_text: [vehicle.year, vehicle.make, vehicle.model, vehicle.variant]
+          .filter(Boolean)
+          .join(" "),
+      });
     }
   }
   for (let index = 0; index < imageRows.length; index += 500) {
-    const { error } = await supabase.from('KingsOfCars_vehicle_images').insert(imageRows.slice(index, index + 500))
-    if (error) throw error
+    const { error } = await supabase
+      .from("KingsOfCars_vehicle_images")
+      .insert(imageRows.slice(index, index + 500));
+    if (error) throw error;
   }
 }
 
 async function removeStale(activeSlugs) {
-  const { data, error } = await supabase.from('KingsOfCars_vehicles').select('id,slug,source_url').ilike('source_url', '%kingofcars.co.za%')
-  if (error) throw error
-  const staleIds = (data ?? []).filter((row) => !activeSlugs.has(row.slug)).map((row) => row.id)
-  if (!staleIds.length) return 0
-  const { error: imageError } = await supabase.from('KingsOfCars_vehicle_images').delete().in('vehicle_id', staleIds)
-  if (imageError) throw imageError
-  const { error: vehicleError } = await supabase.from('KingsOfCars_vehicles').delete().in('id', staleIds)
-  if (vehicleError) throw vehicleError
-  return staleIds.length
+  const { data, error } = await supabase
+    .from("KingsOfCars_vehicles")
+    .select("id,slug,source_url")
+    .ilike("source_url", "%kingofcars.co.za%");
+  if (error) throw error;
+  const staleIds = (data ?? [])
+    .filter((row) => !activeSlugs.has(row.slug))
+    .map((row) => row.id);
+  if (!staleIds.length) return 0;
+  const { error: imageError } = await supabase
+    .from("KingsOfCars_vehicle_images")
+    .delete()
+    .in("vehicle_id", staleIds);
+  if (imageError) throw imageError;
+  const { error: vehicleError } = await supabase
+    .from("KingsOfCars_vehicles")
+    .delete()
+    .in("id", staleIds);
+  if (vehicleError) throw vehicleError;
+  return staleIds.length;
 }
 
 async function main() {
-  const { rows, finalCount, partial } = await fetchInventory()
-  const mapped = rows.map(mapVehicle).filter((vehicle) => vehicle.slug && vehicle.model)
-  const bySlug = [...new Map(mapped.map((vehicle) => [vehicle.slug, vehicle])).values()]
-  const vehicles = bySlug.filter((vehicle, index) => vehicle.stock_number === null || bySlug.findIndex((candidate) => candidate.stock_number === vehicle.stock_number) === index)
-  if (vehicles.length < MIN_SYNC_VEHICLES) throw new Error(`Mapped ${vehicles.length} vehicles; refusing sync.`)
-  console.log(`Mapped ${vehicles.length} Boksburg vehicles from source count ${finalCount}; partial=${partial}.`)
+  const { rows, finalCount, partial } = await fetchInventory();
+  const mapped = rows
+    .map(mapVehicle)
+    .filter((vehicle) => vehicle.slug && vehicle.model);
+  const bySlug = [
+    ...new Map(mapped.map((vehicle) => [vehicle.slug, vehicle])).values(),
+  ];
+  const vehicles = bySlug.filter(
+    (vehicle, index) =>
+      vehicle.stock_number === null ||
+      bySlug.findIndex(
+        (candidate) => candidate.stock_number === vehicle.stock_number,
+      ) === index,
+  );
+  if (vehicles.length < MIN_SYNC_VEHICLES)
+    throw new Error(`Mapped ${vehicles.length} vehicles; refusing sync.`);
+  console.log(
+    `Mapped ${vehicles.length} Boksburg vehicles from source count ${finalCount}; partial=${partial}.`,
+  );
 
-  const imported = []
+  const imported = [];
   for (let index = 0; index < vehicles.length; index += UPSERT_BATCH_SIZE) {
-    imported.push(...await upsert(vehicles.slice(index, index + UPSERT_BATCH_SIZE)))
-    console.log(`Upserted ${Math.min(index + UPSERT_BATCH_SIZE, vehicles.length)}/${vehicles.length}`)
+    imported.push(
+      ...(await upsert(vehicles.slice(index, index + UPSERT_BATCH_SIZE))),
+    );
+    console.log(
+      `Upserted ${Math.min(index + UPSERT_BATCH_SIZE, vehicles.length)}/${vehicles.length}`,
+    );
   }
 
-  const idsBySlug = new Map(imported.map((row) => [row.slug, row.id]))
-  await rebuildImages(vehicles, idsBySlug)
+  const idsBySlug = new Map(imported.map((row) => [row.slug, row.id]));
+  await rebuildImages(vehicles, idsBySlug);
 
-  let stale = 0
+  let stale = 0;
   if (!partial) {
-    stale = await removeStale(new Set(vehicles.map((vehicle) => vehicle.slug)))
-    console.log(`Removed ${stale} stale King of Cars rows.`)
+    stale = await removeStale(new Set(vehicles.map((vehicle) => vehicle.slug)));
+    console.log(`Removed ${stale} stale King of Cars rows.`);
   } else {
-    console.log(`PARTIAL SYNC: preserved existing King of Cars rows because source count=${finalCount} exceeded returned rows=${rows.length}. No stale rows were deleted.`)
+    console.log(
+      `PARTIAL SYNC: preserved existing King of Cars rows because source count=${finalCount} exceeded returned rows=${rows.length}. No stale rows were deleted.`,
+    );
   }
 
-  const { count: total, error: totalError } = await supabase.from('KingsOfCars_vehicles').select('id', { count: 'exact', head: true })
-  if (totalError) throw totalError
-  const { count: available, error: availableError } = await supabase.from('KingsOfCars_vehicles').select('id', { count: 'exact', head: true }).eq('status', 'available')
-  if (availableError) throw availableError
-  if ((available ?? 0) < MIN_SYNC_VEHICLES) throw new Error(`Verification failed: available=${available}`)
-  console.log(`VERIFIED: total=${total}; available=${available}; imported=${vehicles.length}; source=${finalCount}; partial=${partial}`)
-  console.log('SUCCESS: Boksburg inventory sync completed.')
+  const { count: total, error: totalError } = await supabase
+    .from("KingsOfCars_vehicles")
+    .select("id", { count: "exact", head: true });
+  if (totalError) throw totalError;
+  const { count: available, error: availableError } = await supabase
+    .from("KingsOfCars_vehicles")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "available");
+  if (availableError) throw availableError;
+  if ((available ?? 0) < MIN_SYNC_VEHICLES)
+    throw new Error(`Verification failed: available=${available}`);
+  console.log(
+    `VERIFIED: total=${total}; available=${available}; imported=${vehicles.length}; source=${finalCount}; partial=${partial}`,
+  );
+  console.log("SUCCESS: Boksburg inventory sync completed.");
 }
 
-main().catch((error) => { console.error('SYNC FAILED:', error); process.exit(1) })
+main().catch((error) => {
+  console.error("SYNC FAILED:", error);
+  process.exit(1);
+});

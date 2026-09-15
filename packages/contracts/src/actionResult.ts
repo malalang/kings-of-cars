@@ -1,8 +1,20 @@
-import { z } from 'zod'
+export type ActionError = {
+  message: string;
+  fieldErrors?: Record<string, string[]>;
+};
 
-export const actionResultSchema = z.discriminatedUnion('success', [
-  z.object({ success: z.literal(true), data: z.unknown().optional() }),
-  z.object({ success: z.literal(false), error: z.string() }),
-])
+export type ActionSuccess = {
+  message?: string;
+};
 
-export type ActionResult = z.infer<typeof actionResultSchema>
+export type ActionResult<TData = undefined> =
+  | {
+      ok: true;
+      data?: TData;
+      message?: string;
+    }
+  | {
+      ok: false;
+      error: string;
+      fieldErrors?: Record<string, string[]>;
+    };

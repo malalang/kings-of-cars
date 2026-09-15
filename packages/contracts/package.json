@@ -4,6 +4,7 @@
   "private": true,
   "exports": {
     "./actionResult": "./src/actionResult.ts",
+    "./business": "./src/business.ts",
     "./car": "./src/car.ts",
     "./contact": "./src/contact.ts",
     "./env": "./src/env.ts",
@@ -14,6 +15,9 @@
   },
   "dependencies": {
     "zod": "catalog:"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "typescript": "catalog:"

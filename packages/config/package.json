@@ -1,9 +1,0 @@
-{
-  "name": "@kings-of-cars/config",
-  "version": "0.1.0",
-  "private": true,
-  "exports": {
-    "./biome": "./biome.json",
-    "./typescript": "./typescript.json"
-  }
-}

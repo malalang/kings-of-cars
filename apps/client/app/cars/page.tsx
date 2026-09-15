@@ -1,24 +1,543 @@
-import Link from 'next/link'
-import type { Metadata } from 'next'
-import { ChevronDown, Gauge, Heart, Mail, Palette, Search } from 'lucide-react'
-import { FaFacebookF, FaWhatsapp } from 'react-icons/fa'
-import { CarsSort } from '../../components/cars-sort'
-import { EnquireToggle } from './enquire-toggle'
-import { VehicleGallery } from '../../components/vehicle-gallery'
-import { getVehicles } from '../../lib/vehicles'
+import { ChevronDown, Gauge, Heart, Mail, Palette, Search } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { FaFacebookF, FaWhatsapp } from "react-icons/fa";
+import { CarsSort } from "../../components/cars-sort";
+import { VehicleGallery } from "../../components/vehicle-gallery";
+import { getCachedCars } from "../_lib/cached-public-data";
+import { EnquireToggle } from "./enquire-toggle";
 
-export const revalidate = 60
-export const metadata: Metadata = { title: 'Quality Used Cars | Boksburg | King of Cars', description: 'Looking for quality used cars in Boksburg? Browse the King of Cars pre-owned vehicle stock.' }
-const money = (value: number | null | undefined) => value == null ? 'POA' : `R ${Math.round(value).toLocaleString('en-ZA')}`
-const priceSteps = [25000, 50000, 75000, 100000, 150000, 200000, 300000, 400000, 500000, 700000, 1000000]
-const pageSize = 12
-type CarSearchParams = { q?: string; make?: string; model?: string; priceFrom?: string; priceTo?: string; mileage?: string; transmission?: string; fuel?: string; year?: string; sort?: string; onlyPhotos?: string; page?: string }
-function Pagination({ page, pageCount, query }: { page:number; pageCount:number; query:URLSearchParams }) { if(pageCount<=1)return null; const href=(p:number)=>{const q=new URLSearchParams(query);q.set('page',String(p));return `/cars?${q.toString()}`}; const nums=Array.from({length:pageCount},(_,i)=>i+1); return <nav className="koc-legacy-pagination" aria-label="Vehicle pages"><Link href={href(1)} className={page===1?'disabled':''}>First</Link><Link href={href(Math.max(1,page-1))} className={page===1?'disabled':''}>Previous</Link>{nums.slice(Math.max(0,Math.min(page-1,3)-1),Math.max(4,Math.min(page-1,3)+3)).map(n=><Link key={n} href={href(n)} className={n===page?'active':''}>{n}</Link>)}<Link href={href(Math.min(pageCount,page+1))} className={page===pageCount?'disabled':''}>Next</Link><Link href={href(pageCount)} className={page===pageCount?'disabled':''}>Last</Link></nav> }
-function SocialStrip({car}:{car:any}) { const title=`${car.year??''} ${car.make??''} ${car.model??''} ${car.variant??''}`.replace(/\s+/g,' ').trim(); const shareUrl=typeof car.source_url==='string'&&car.source_url?car.source_url:`/cars/${car.slug}`; const whatsappUrl=`https://wa.me/?text=${encodeURIComponent(`I'm interested in the ${title} listed at ${money(car.price)}: ${shareUrl}`)}`; const emailUrl=`mailto:?subject=${encodeURIComponent(`Vehicle enquiry: ${title}`)}&body=${encodeURIComponent(`I'm interested in the ${title} listed at ${money(car.price)}. ${shareUrl}`)}`; return <div className="koc-legacy-social" aria-label="Share vehicle"><span className="share-plus" aria-hidden="true">+</span><a className="share-whatsapp" aria-label="WhatsApp" href={whatsappUrl} target="_blank" rel="noreferrer"><FaWhatsapp size={13}/></a><a className="share-facebook" aria-label="Facebook" href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noreferrer"><FaFacebookF size={12}/></a><a className="share-mail" aria-label="Email" href={emailUrl}><Mail size={12}/></a></div> }
-function getTransmission(car:any){if(car.transmission)return car.transmission;const v=`${car.variant??''} ${car.vehicle_name??''}`.toLowerCase();if(/automatic|\bat\b|auto|\bdct\b|\bdsg\b|\bcvt\b|\bzf/.test(v))return 'Automatic';if(/manual|\bmt\b|\bm\/t\b/.test(v))return 'Manual';return null}
-function getFuel(car:any){if(car.fuel_type)return car.fuel_type;const v=`${car.variant??''} ${car.vehicle_name??''}`.toLowerCase();if(/diesel|gd-6|gd6|tdi|td|d-4d|d4d|hdi|dci|bi-turbo|biturbo|2\.8d|2\.5d|3\.0d|4\.5d/.test(v))return 'Diesel';if(/petrol|fsi|tsi|t-gdi|tgdi|vti|mpi|gti|ecoboost/.test(v))return 'Petrol';if(/hybrid|hev|phev/.test(v))return 'Hybrid';if(/electric|\bev\b/.test(v))return 'Electric';return null}
-function values(vehicles:any[], key:string){return [...new Set(vehicles.map(c=>c[key]).filter(v=>v!==null&&v!==undefined&&String(v).trim()!==''))].map(String).sort((a,b)=>a.localeCompare(b))}
-function filterVehicles(vehicles:any[], params:CarSearchParams){const q=(params.q||'').trim().toLowerCase();const make=params.make||'';const model=params.model||'';const pf=params.priceFrom?Number(params.priceFrom):null;const pt=params.priceTo?Number(params.priceTo):null;const mileage=params.mileage||'';const transmission=params.transmission||'';const fuel=params.fuel||'';const year=params.year||'';return vehicles.filter(car=>{if(q&&!`${car.make} ${car.model} ${car.variant} ${car.colour} ${car.body_type}`.toLowerCase().includes(q))return false;if(make&&car.make!==make)return false;if(model&&car.model!==model)return false;if(pf!=null&&(car.price==null||car.price<pf))return false;if(pt!=null&&(car.price==null||car.price>pt))return false;if(transmission&&getTransmission(car)!==transmission)return false;if(fuel&&getFuel(car)!==fuel)return false;if(year&&String(car.year)!==year)return false;if(mileage){const [low,high]=mileage.split('-').map(Number);if(car.mileage==null||(Number.isFinite(low)&&car.mileage<low)||(Number.isFinite(high)&&car.mileage>high))return false}if(params.onlyPhotos==='1'&&!(car.gallery_urls?.length||car.image_url))return false;return true})}
-function Select({name,label,value,options,disabled=false,empty='Any'}:{name:string;label:string;value:string;options:string[];disabled?:boolean;empty?:string}){return <label><span>{label}<ChevronDown size={10}/></span><select name={name} defaultValue={value} disabled={disabled}><option value="">{empty}</option>{options.map(v=><option key={v} value={v}>{v}</option>)}</select></label>}
-export default async function CarsPage({searchParams}:{searchParams:Promise<CarSearchParams>}){const params=await searchParams;const all:any[]=await getVehicles();const make=params.make||'';const makeVehicles=make?all.filter(c=>c.make===make):all;const model=params.model||'';const modelVehicles=model?makeVehicles.filter(c=>c.model===model):makeVehicles;const makes=values(all,'make');const models=values(makeVehicles,'model');const transmissions=values(all,'transmission');const fuels=values(all,'fuel_type');const years=values(all,'year').sort((a,b)=>Number(b)-Number(a));const filtered=filterVehicles(all,params).sort((a,b)=>{const s=params.sort||'featured';if(s==='price-asc')return(a.price??Infinity)-(b.price??Infinity);if(s==='price-desc')return(b.price??-Infinity)-(a.price??-Infinity);if(s==='mileage-asc')return(a.mileage??Infinity)-(b.mileage??Infinity);if(s==='year-desc')return(b.year??0)-(a.year??0);return 0});const pageCount=Math.max(1,Math.ceil(filtered.length/pageSize));const page=Math.min(Math.max(Number(params.page||1)||1,1),pageCount);const pageVehicles=filtered.slice((page-1)*pageSize,page*pageSize);const query=new URLSearchParams();for(const key of ['q','make','model','priceFrom','priceTo','mileage','transmission','fuel','year','onlyPhotos','sort']){const v=(params as any)[key];if(v&&v!=='0')query.set(key,String(v))}
-return <><main className="koc-legacy-cars-page"><div className="koc-legacy-inner"><div className="koc-legacy-title title left"><h1>Trichardts Road, Boksburg Used Cars</h1><div className="divider"/></div><p>Our branch in Trichardts Road, Boksburg has a range of quality cars that are affordable and guaranteed to suit your budget. Our pre-owned cars have been taken through rigorous road tests to ensure that you are guaranteed quality and peace of mind when you purchase a vehicle from King of Cars.</p><p>Should we not have the car that you are looking for in stock, <Link href="/contact">contact us</Link> and we will source the car of your dreams. We have financial solutions to assist you in the purchase of your vehicle.</p><form method="get" id="vehicle_search_area_used" onChange={undefined}><div className="koc-legacy-row"><aside className="koc-legacy-sidebar"><div className="koc-legacy-stock-title">Search our vehicles in stock</div><Link href="/cars" className="koc-legacy-clear">Clear Filter</Link><div className="koc-legacy-search"><input name="q" defaultValue={params.q||''} placeholder="Search (EG. white demo 4x4)" aria-label="Search vehicles"/><button type="submit" aria-label="Search"><Search size={15}/></button></div><div className="koc-legacy-filters"><Select name="make" label="Makes" value={make} options={makes} empty="All Makes"/><Select name="model" label="Models" value={model} options={models} disabled={!make} empty="All Models"/><Select name="year" label="Year" value={params.year||''} options={years} empty="Any Year"/><label><span>Mileage<ChevronDown size={10}/></span><select name="mileage" defaultValue={params.mileage||''}><option value="">Any Mileage</option><option value="0-50000">0 - 50 000 Km</option><option value="50000-100000">50 000 - 100 000 Km</option><option value="100000-200000">100 000 - 200 000 Km</option><option value="200000-9999999">200 000+ Km</option></select></label><label><span>Price<ChevronDown size={10}/></span><select name="priceFrom" defaultValue={params.priceFrom||''}><option value="">Price From</option>{priceSteps.map(v=><option key={v} value={v}>{money(v)}</option>)}</select></label><label><span className="koc-legacy-filter-spacer">Price</span><select name="priceTo" defaultValue={params.priceTo||''}><option value="">Price To</option>{priceSteps.map(v=><option key={v} value={v}>{money(v)}</option>)}</select></label><Select name="transmission" label="Transmission" value={params.transmission||''} options={transmissions} empty="Any"/><Select name="fuel" label="Fuel Type" value={params.fuel||''} options={fuels} empty="Any"/></div><label className="koc-legacy-checkbox"><input type="checkbox" name="onlyPhotos" value="1" defaultChecked={params.onlyPhotos==='1'}/> Only show vehicles with photos</label><button type="submit" className="koc-legacy-search-button"><Search size={13}/> SEARCH</button><Link href="/cars" className="koc-legacy-clear bottom">Clear Filter</Link></aside><section className="koc-legacy-results"><div className="koc-legacy-results-top"><div className="koc-legacy-count">Showing {pageVehicles.length?`${(page-1)*pageSize+1} - ${Math.min(page*pageSize,filtered.length)}`:0} of {filtered.length} vehicles <span className="koc-legacy-time">(live)</span></div><Pagination page={page} pageCount={pageCount} query={query}/></div><div className="koc-legacy-sort"><CarsSort value={params.sort||'featured'}/></div><div className="koc-legacy-vehicle-list">{pageVehicles.length===0?<div className="koc-vs-empty">No vehicles match your search criteria. <Link href="/cars">Clear Filters</Link></div>:pageVehicles.map(car=>{const tv=getTransmission(car);const fv=getFuel(car);return <article key={car.id} className="koc-legacy-vehicle-card"><VehicleGallery images={car.gallery_urls} fallback={car.image_url} alt={`${car.year||''} ${car.make||''} ${car.model||''}`.trim()}/><div className="koc-legacy-vehicle-main"><div className="koc-legacy-name"><strong>{car.year||'—'}</strong> {car.make} {car.model} {car.variant||''} {car.body_type?<>• {car.body_type}</>:null}</div><div className="koc-legacy-price-row"><strong>{money(car.price)}</strong><span>{car.monthly_payment?`R ${Number(car.monthly_payment).toLocaleString('en-ZA')} pm`:''}</span><button type="button" className="koc-legacy-calc">▣ Calculator</button></div><div className="koc-legacy-spec-line"><span><Gauge size={11}/> {Number(car.mileage||0).toLocaleString('en-ZA')} Km</span><span><Palette size={11}/> {car.colour||'—'}</span></div><div className="koc-legacy-location">● {car.location||'Boksburg'}</div><SocialStrip car={car}/><div className="koc-legacy-buttons"><Link href={`/cars/${car.slug}`} className="more">More Info</Link><EnquireToggle vehicle={{id:car.id,year:car.year,make:car.make,model:car.model,variant:car.variant,price:car.price}}/><Link href={`/finance?vehicle=${car.slug}&price=${car.price||''}`} className="finance">Finance</Link><button type="button" className="compare"><Heart size={11}/> Compare</button></div></div><div className="koc-legacy-spec-panel"><span>{car.body_type||'—'}</span><span>{tv||'—'}</span><span>{fv||'—'}</span></div></article>})}</div><Pagination page={page} pageCount={pageCount} query={query}/></section></div></form></div></main><footer className="koc-legacy-footer"><div>2026 © King Of Cars Group</div><nav><Link href="/testimonials">Testimonials</Link><Link href="/value-added-products">Value Added Products</Link><Link href="/articles">Promotions and Events</Link><Link href="/contact">Legal and Disclaimer</Link></nav><div className="koc-legacy-footer-buttons"><Link href="/contact">Personal Information</Link><Link href="/contact">Terms &amp; Conditions</Link><Link href="/">Sitemap</Link></div></footer></>}
+export const revalidate = 60;
+export const metadata: Metadata = {
+  title: "Quality Used Cars | Boksburg | King of Cars",
+  description:
+    "Looking for quality used cars in Boksburg? Browse the King of Cars pre-owned vehicle stock.",
+};
+const money = (value: number | null | undefined) =>
+  value == null ? "POA" : `R ${Math.round(value).toLocaleString("en-ZA")}`;
+const priceSteps = [
+  25000, 50000, 75000, 100000, 150000, 200000, 300000, 400000, 500000, 700000,
+  1000000,
+];
+const pageSize = 12;
+type CarSearchParams = {
+  q?: string;
+  make?: string;
+  model?: string;
+  priceFrom?: string;
+  priceTo?: string;
+  mileage?: string;
+  transmission?: string;
+  fuel?: string;
+  year?: string;
+  sort?: string;
+  onlyPhotos?: string;
+  page?: string;
+};
+function Pagination({
+  page,
+  pageCount,
+  query,
+}: {
+  page: number;
+  pageCount: number;
+  query: URLSearchParams;
+}) {
+  if (pageCount <= 1) return null;
+  const href = (p: number) => {
+    const q = new URLSearchParams(query);
+    q.set("page", String(p));
+    return `/cars?${q.toString()}`;
+  };
+  const nums = Array.from({ length: pageCount }, (_, i) => i + 1);
+  return (
+    <nav className="koc-legacy-pagination" aria-label="Vehicle pages">
+      <Link href={href(1)} className={page === 1 ? "disabled" : ""}>
+        First
+      </Link>
+      <Link
+        href={href(Math.max(1, page - 1))}
+        className={page === 1 ? "disabled" : ""}
+      >
+        Previous
+      </Link>
+      {nums
+        .slice(
+          Math.max(0, Math.min(page - 1, 3) - 1),
+          Math.max(4, Math.min(page - 1, 3) + 3),
+        )
+        .map((n) => (
+          <Link key={n} href={href(n)} className={n === page ? "active" : ""}>
+            {n}
+          </Link>
+        ))}
+      <Link
+        href={href(Math.min(pageCount, page + 1))}
+        className={page === pageCount ? "disabled" : ""}
+      >
+        Next
+      </Link>
+      <Link
+        href={href(pageCount)}
+        className={page === pageCount ? "disabled" : ""}
+      >
+        Last
+      </Link>
+    </nav>
+  );
+}
+function SocialStrip({ car }: { car: any }) {
+  const title =
+    `${car.year ?? ""} ${car.make ?? ""} ${car.model ?? ""} ${car.variant ?? ""}`
+      .replace(/\s+/g, " ")
+      .trim();
+  const shareUrl =
+    typeof car.sourceUrl === "string" && car.sourceUrl
+      ? car.sourceUrl
+      : `/cars/${car.slug}`;
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`I'm interested in the ${title} listed at ${money(car.price)}: ${shareUrl}`)}`;
+  const emailUrl = `mailto:?subject=${encodeURIComponent(`Vehicle enquiry: ${title}`)}&body=${encodeURIComponent(`I'm interested in the ${title} listed at ${money(car.price)}. ${shareUrl}`)}`;
+  return (
+    <section className="koc-legacy-social" aria-label="Share vehicle">
+      <span className="share-plus" aria-hidden="true">
+        +
+      </span>
+      <a
+        className="share-whatsapp"
+        aria-label="WhatsApp"
+        href={whatsappUrl}
+        target="_blank"
+        rel="noreferrer"
+      >
+        <FaWhatsapp size={13} />
+      </a>
+      <a
+        className="share-facebook"
+        aria-label="Facebook"
+        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+        target="_blank"
+        rel="noreferrer"
+      >
+        <FaFacebookF size={12} />
+      </a>
+      <a className="share-mail" aria-label="Email" href={emailUrl}>
+        <Mail size={12} />
+      </a>
+    </section>
+  );
+}
+function getTransmission(car: any) {
+  if (car.transmission) return car.transmission;
+  const v = `${car.variant ?? ""} ${car.vehicleName ?? ""}`.toLowerCase();
+  if (/automatic|\bat\b|auto|\bdct\b|\bdsg\b|\bcvt\b|\bzf/.test(v))
+    return "Automatic";
+  if (/manual|\bmt\b|\bm\/t\b/.test(v)) return "Manual";
+  return null;
+}
+function getFuel(car: any) {
+  if (car.fuelType) return car.fuelType;
+  const v = `${car.variant ?? ""} ${car.vehicleName ?? ""}`.toLowerCase();
+  if (
+    /diesel|gd-6|gd6|tdi|td|d-4d|d4d|hdi|dci|bi-turbo|biturbo|2\.8d|2\.5d|3\.0d|4\.5d/.test(
+      v,
+    )
+  )
+    return "Diesel";
+  if (/petrol|fsi|tsi|t-gdi|tgdi|vti|mpi|gti|ecoboost/.test(v)) return "Petrol";
+  if (/hybrid|hev|phev/.test(v)) return "Hybrid";
+  if (/electric|\bev\b/.test(v)) return "Electric";
+  return null;
+}
+function values(vehicles: any[], key: string) {
+  return [
+    ...new Set(
+      vehicles
+        .map((c) => c[key])
+        .filter(
+          (v) => v !== null && v !== undefined && String(v).trim() !== "",
+        ),
+    ),
+  ]
+    .map(String)
+    .sort((a, b) => a.localeCompare(b));
+}
+function filterVehicles(vehicles: any[], params: CarSearchParams) {
+  const q = (params.q || "").trim().toLowerCase();
+  const make = params.make || "";
+  const model = params.model || "";
+  const pf = params.priceFrom ? Number(params.priceFrom) : null;
+  const pt = params.priceTo ? Number(params.priceTo) : null;
+  const mileage = params.mileage || "";
+  const transmission = params.transmission || "";
+  const fuel = params.fuel || "";
+  const year = params.year || "";
+  return vehicles.filter((car) => {
+    if (
+      q &&
+      !`${car.make} ${car.model} ${car.variant} ${car.colour} ${car.bodyType}`
+        .toLowerCase()
+        .includes(q)
+    )
+      return false;
+    if (make && car.make !== make) return false;
+    if (model && car.model !== model) return false;
+    if (pf != null && (car.price == null || car.price < pf)) return false;
+    if (pt != null && (car.price == null || car.price > pt)) return false;
+    if (transmission && getTransmission(car) !== transmission) return false;
+    if (fuel && getFuel(car) !== fuel) return false;
+    if (year && String(car.year) !== year) return false;
+    if (mileage) {
+      const [low, high] = mileage.split("-").map(Number);
+      if (
+        car.mileage == null ||
+        (Number.isFinite(low) && car.mileage < low) ||
+        (Number.isFinite(high) && car.mileage > high)
+      )
+        return false;
+    }
+    if (params.onlyPhotos === "1" && !(car.galleryUrls?.length || car.imageUrl))
+      return false;
+    return true;
+  });
+}
+function Select({
+  name,
+  label,
+  value,
+  options,
+  disabled = false,
+  empty = "Any",
+}: {
+  name: string;
+  label: string;
+  value: string;
+  options: string[];
+  disabled?: boolean;
+  empty?: string;
+}) {
+  return (
+    <label>
+      <span>
+        {label}
+        <ChevronDown size={10} />
+      </span>
+      <select name={name} defaultValue={value} disabled={disabled}>
+        <option value="">{empty}</option>
+        {options.map((v) => (
+          <option key={v} value={v}>
+            {v}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+export default async function CarsPage({
+  searchParams,
+}: {
+  searchParams: Promise<CarSearchParams>;
+}) {
+  const params = await searchParams;
+  const all: any[] = await getCachedCars();
+  const make = params.make || "";
+  const makeVehicles = make ? all.filter((c) => c.make === make) : all;
+  const model = params.model || "";
+  const makes = values(all, "make");
+  const models = values(makeVehicles, "model");
+  const transmissions = values(all, "transmission");
+  const fuels = values(all, "fuelType");
+  const years = values(all, "year").sort((a, b) => Number(b) - Number(a));
+  const filtered = filterVehicles(all, params).sort((a, b) => {
+    const s = params.sort || "featured";
+    if (s === "price-asc") return (a.price ?? Infinity) - (b.price ?? Infinity);
+    if (s === "price-desc")
+      return (b.price ?? -Infinity) - (a.price ?? -Infinity);
+    if (s === "mileage-asc")
+      return (a.mileage ?? Infinity) - (b.mileage ?? Infinity);
+    if (s === "year-desc") return (b.year ?? 0) - (a.year ?? 0);
+    return 0;
+  });
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const page = Math.min(Math.max(Number(params.page || 1) || 1, 1), pageCount);
+  const pageVehicles = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const query = new URLSearchParams();
+  for (const key of [
+    "q",
+    "make",
+    "model",
+    "priceFrom",
+    "priceTo",
+    "mileage",
+    "transmission",
+    "fuel",
+    "year",
+    "onlyPhotos",
+    "sort",
+  ]) {
+    const v = (params as any)[key];
+    if (v && v !== "0") query.set(key, String(v));
+  }
+  return (
+    <>
+      <main className="koc-legacy-cars-page">
+        <div className="koc-legacy-inner">
+          <div className="koc-legacy-title title left">
+            <h1>Trichardts Road, Boksburg Used Cars</h1>
+            <div className="divider" />
+          </div>
+          <p>
+            Our branch in Trichardts Road, Boksburg has a range of quality cars
+            that are affordable and guaranteed to suit your budget. Our
+            pre-owned cars have been taken through rigorous road tests to ensure
+            that you are guaranteed quality and peace of mind when you purchase
+            a vehicle from King of Cars.
+          </p>
+          <p>
+            Should we not have the car that you are looking for in stock,{" "}
+            <Link href="/contact">contact us</Link> and we will source the car
+            of your dreams. We have financial solutions to assist you in the
+            purchase of your vehicle.
+          </p>
+          <form method="get" id="vehicle_search_area_used" onChange={undefined}>
+            <div className="koc-legacy-row">
+              <aside className="koc-legacy-sidebar">
+                <div className="koc-legacy-stock-title">
+                  Search our vehicles in stock
+                </div>
+                <Link href="/cars" className="koc-legacy-clear">
+                  Clear Filter
+                </Link>
+                <div className="koc-legacy-search">
+                  <input
+                    name="q"
+                    defaultValue={params.q || ""}
+                    placeholder="Search (EG. white demo 4x4)"
+                    aria-label="Search vehicles"
+                  />
+                  <button type="submit" aria-label="Search">
+                    <Search size={15} />
+                  </button>
+                </div>
+                <div className="koc-legacy-filters">
+                  <Select
+                    name="make"
+                    label="Makes"
+                    value={make}
+                    options={makes}
+                    empty="All Makes"
+                  />
+                  <Select
+                    name="model"
+                    label="Models"
+                    value={model}
+                    options={models}
+                    disabled={!make}
+                    empty="All Models"
+                  />
+                  <Select
+                    name="year"
+                    label="Year"
+                    value={params.year || ""}
+                    options={years}
+                    empty="Any Year"
+                  />
+                  <label>
+                    <span>
+                      Mileage
+                      <ChevronDown size={10} />
+                    </span>
+                    <select name="mileage" defaultValue={params.mileage || ""}>
+                      <option value="">Any Mileage</option>
+                      <option value="0-50000">0 - 50 000 Km</option>
+                      <option value="50000-100000">50 000 - 100 000 Km</option>
+                      <option value="100000-200000">
+                        100 000 - 200 000 Km
+                      </option>
+                      <option value="200000-9999999">200 000+ Km</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>
+                      Price
+                      <ChevronDown size={10} />
+                    </span>
+                    <select
+                      name="priceFrom"
+                      defaultValue={params.priceFrom || ""}
+                    >
+                      <option value="">Price From</option>
+                      {priceSteps.map((v) => (
+                        <option key={v} value={v}>
+                          {money(v)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span className="koc-legacy-filter-spacer">Price</span>
+                    <select name="priceTo" defaultValue={params.priceTo || ""}>
+                      <option value="">Price To</option>
+                      {priceSteps.map((v) => (
+                        <option key={v} value={v}>
+                          {money(v)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <Select
+                    name="transmission"
+                    label="Transmission"
+                    value={params.transmission || ""}
+                    options={transmissions}
+                    empty="Any"
+                  />
+                  <Select
+                    name="fuel"
+                    label="Fuel Type"
+                    value={params.fuel || ""}
+                    options={fuels}
+                    empty="Any"
+                  />
+                </div>
+                <label className="koc-legacy-checkbox">
+                  <input
+                    type="checkbox"
+                    name="onlyPhotos"
+                    value="1"
+                    defaultChecked={params.onlyPhotos === "1"}
+                  />{" "}
+                  Only show vehicles with photos
+                </label>
+                <button type="submit" className="koc-legacy-search-button">
+                  <Search size={13} /> SEARCH
+                </button>
+                <Link href="/cars" className="koc-legacy-clear bottom">
+                  Clear Filter
+                </Link>
+              </aside>
+              <section className="koc-legacy-results">
+                <div className="koc-legacy-results-top">
+                  <div className="koc-legacy-count">
+                    Showing{" "}
+                    {pageVehicles.length
+                      ? `${(page - 1) * pageSize + 1} - ${Math.min(page * pageSize, filtered.length)}`
+                      : 0}{" "}
+                    of {filtered.length} vehicles{" "}
+                    <span className="koc-legacy-time">(live)</span>
+                  </div>
+                  <Pagination page={page} pageCount={pageCount} query={query} />
+                </div>
+                <div className="koc-legacy-sort">
+                  <CarsSort value={params.sort || "featured"} />
+                </div>
+                <div className="koc-legacy-vehicle-list">
+                  {pageVehicles.length === 0 ? (
+                    <div className="koc-vs-empty">
+                      No vehicles match your search criteria.{" "}
+                      <Link href="/cars">Clear Filters</Link>
+                    </div>
+                  ) : (
+                    pageVehicles.map((car) => {
+                      const tv = getTransmission(car);
+                      const fv = getFuel(car);
+                      return (
+                        <article
+                          key={car.id}
+                          className="koc-legacy-vehicle-card"
+                        >
+                          <VehicleGallery
+                            images={car.galleryUrls}
+                            fallback={car.imageUrl}
+                            alt={`${car.year || ""} ${car.make || ""} ${car.model || ""}`.trim()}
+                          />
+                          <div className="koc-legacy-vehicle-main">
+                            <div className="koc-legacy-name">
+                              <strong>{car.year || "—"}</strong> {car.make}{" "}
+                              {car.model} {car.variant || ""}{" "}
+                              {car.bodyType ? <>• {car.bodyType}</> : null}
+                            </div>
+                            <div className="koc-legacy-price-row">
+                              <strong>{money(car.price)}</strong>
+                              <span>
+                                {car.monthlyPayment
+                                  ? `R ${Number(car.monthlyPayment).toLocaleString("en-ZA")} pm`
+                                  : ""}
+                              </span>
+                              <button type="button" className="koc-legacy-calc">
+                                ▣ Calculator
+                              </button>
+                            </div>
+                            <div className="koc-legacy-spec-line">
+                              <span>
+                                <Gauge size={11} />{" "}
+                                {Number(car.mileage || 0).toLocaleString(
+                                  "en-ZA",
+                                )}{" "}
+                                Km
+                              </span>
+                              <span>
+                                <Palette size={11} /> {car.colour || "—"}
+                              </span>
+                            </div>
+                            <div className="koc-legacy-location">
+                              ● {car.location || "Boksburg"}
+                            </div>
+                            <SocialStrip car={car} />
+                            <div className="koc-legacy-buttons">
+                              <Link href={`/cars/${car.slug}`} className="more">
+                                More Info
+                              </Link>
+                              <EnquireToggle
+                                vehicle={{
+                                  id: car.id,
+                                  year: car.year,
+                                  make: car.make,
+                                  model: car.model,
+                                  variant: car.variant,
+                                  price: car.price,
+                                }}
+                              />
+                              <Link
+                                href={`/finance?vehicle=${car.slug}&price=${car.price || ""}`}
+                                className="finance"
+                              >
+                                Finance
+                              </Link>
+                              <button type="button" className="compare">
+                                <Heart size={11} /> Compare
+                              </button>
+                            </div>
+                          </div>
+                          <div className="koc-legacy-spec-panel">
+                            <span>{car.bodyType || "—"}</span>
+                            <span>{tv || "—"}</span>
+                            <span>{fv || "—"}</span>
+                          </div>
+                        </article>
+                      );
+                    })
+                  )}
+                </div>
+                <Pagination page={page} pageCount={pageCount} query={query} />
+              </section>
+            </div>
+          </form>
+        </div>
+      </main>
+      <footer className="koc-legacy-footer">
+        <div>2026 © King Of Cars Group</div>
+        <nav>
+          <Link href="/testimonials">Testimonials</Link>
+          <Link href="/value-added-products">Value Added Products</Link>
+          <Link href="/articles">Promotions and Events</Link>
+          <Link href="/contact">Legal and Disclaimer</Link>
+        </nav>
+        <div className="koc-legacy-footer-buttons">
+          <Link href="/contact">Personal Information</Link>
+          <Link href="/contact">Terms &amp; Conditions</Link>
+          <Link href="/">Sitemap</Link>
+        </div>
+      </footer>
+    </>
+  );
+}

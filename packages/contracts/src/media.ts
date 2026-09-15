@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from "zod";
 
 export const vehicleMediaInputSchema = z.object({
   carId: z.string().uuid(),
@@ -6,6 +6,6 @@ export const vehicleMediaInputSchema = z.object({
   altText: z.string().max(250).optional(),
   sortOrder: z.number().int().nonnegative().default(0),
   isPrimary: z.boolean().default(false),
-})
+});
 
-export type VehicleMediaInput = z.infer<typeof vehicleMediaInputSchema>
+export type VehicleMediaInput = z.infer<typeof vehicleMediaInputSchema>;

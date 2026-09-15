@@ -1,19 +1,42 @@
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient } from "@supabase/ssr";
+import { type NextRequest, NextResponse } from "next/server";
+import type { Database } from "./supabaseType";
 
-type CookieStore = {
-  getAll(): { name: string; value: string }[]
-  setAll(cookies: { name: string; value: string; options?: Record<string, unknown> }[]): void
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export function createMiddlewareClient(cookieStore: CookieStore) {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+export const createClient = (request: NextRequest) => {
+  let supabaseResponse = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
+
+  const nextResponse = createServerClient<Database>(
+    supabaseUrl!,
+    supabaseKey!,
     {
       cookies: {
-        getAll: () => cookieStore.getAll(),
-        setAll: (cookies) => cookieStore.setAll(cookies),
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value),
+          );
+          supabaseResponse = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options),
+          );
+        },
       },
     },
-  )
+  );
+
+  void nextResponse;
+  return supabaseResponse;
+};
+
+export async function updateSession(request: NextRequest) {
+  return createClient(request);
 }

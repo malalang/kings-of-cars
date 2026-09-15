@@ -1,7 +1,26 @@
+import type { RevalidationRequest } from "@kings-of-cars/contracts/revalidation";
+
 export const CACHE_TAGS = {
-  cars: 'cars',
+  cars: "cars",
   car: (id: string) => `car:${id}`,
-  leads: 'leads',
-  articles: 'articles',
-  finance: 'finance',
-} as const
+  articles: "articles",
+} as const;
+
+export const CACHE_PATHS = {
+  home: "/",
+  cars: "/cars",
+  carDetail: (slug: string) => `/cars/${slug}`,
+  articles: "/articles",
+} as const;
+
+export interface MutationResult<T> {
+  data: T;
+  revalidate: RevalidationRequest;
+}
+
+export function mutationResult<T>(
+  data: T,
+  revalidate: RevalidationRequest,
+): MutationResult<T> {
+  return { data, revalidate };
+}
