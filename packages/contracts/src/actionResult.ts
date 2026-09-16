@@ -1,17 +1,26 @@
-export type ActionError = {
-  message: string;
-  fieldErrors?: Record<string, string[]>;
-};
+import { z } from "zod";
 
-export type ActionSuccess = {
-  message?: string;
-};
+export const actionErrorSchema = z.object({
+  message: z.string(),
+  fieldErrors: z.record(z.string(), z.array(z.string())).optional(),
+});
+
+export const actionSuccessSchema = z.object({
+  message: z.string().optional(),
+});
+
+export type ActionError = z.infer<typeof actionErrorSchema>;
+export type ActionSuccess = z.infer<typeof actionSuccessSchema>;
 
 export type ActionResult<TData = undefined> =
   | {
       ok: true;
       data?: TData;
       message?: string;
+      revalidate?: {
+        paths?: string[];
+        tags?: string[];
+      };
     }
   | {
       ok: false;

@@ -16,7 +16,7 @@ export const carInputSchema = z.object({
   fuelType: z.string().min(1),
   transmission: z.string().min(1),
   bodyType: z.string().min(1),
-  color: z.string().optional(),
+  colour: z.string().optional(),
   imageUrl: z.string().url().optional(),
   galleryUrls: z.array(z.string().url()).max(50).default([]),
   status: carStatusSchema.default("draft"),

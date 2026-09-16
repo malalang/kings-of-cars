@@ -5,7 +5,6 @@ import { FaFacebookF, FaWhatsapp } from "react-icons/fa";
 import { CarsSort } from "../../components/cars-sort";
 import { VehicleGallery } from "../../components/vehicle-gallery";
 import { getCachedCars } from "../_lib/cached-public-data";
-import { EnquireToggle } from "./enquire-toggle";
 
 export const revalidate = 60;
 export const metadata: Metadata = {
@@ -487,16 +486,6 @@ export default async function CarsPage({
                               <Link href={`/cars/${car.slug}`} className="more">
                                 More Info
                               </Link>
-                              <EnquireToggle
-                                vehicle={{
-                                  id: car.id,
-                                  year: car.year,
-                                  make: car.make,
-                                  model: car.model,
-                                  variant: car.variant,
-                                  price: car.price,
-                                }}
-                              />
                               <Link
                                 href={`/finance?vehicle=${car.slug}&price=${car.price || ""}`}
                                 className="finance"

@@ -10,7 +10,6 @@ export const CACHE_PATHS = {
   home: "/",
   cars: "/cars",
   carDetail: (slug: string) => `/cars/${slug}`,
-  articles: "/articles",
 } as const;
 
 export interface MutationResult<T> {
