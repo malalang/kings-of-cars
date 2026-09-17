@@ -1,10 +1,10 @@
-import type { Vehicle } from "@kings-of-cars/contracts/car";
+import type { VehicleType } from "@kings-of-cars/contracts/car";
 import { createSupabasePublicClient } from "../server";
 import type { Database } from "../supabaseType";
 
 type VehicleRow = Database["public"]["Tables"]["KingsOfCars_vehicles"]["Row"];
 
-function normalizeVehicle(row: VehicleRow, galleryUrls: string[]): Vehicle {
+function normalizeVehicle(row: VehicleRow, galleryUrls: string[]): VehicleType {
   return {
     id: row.id,
     stockNumber: row.stock_number,
@@ -25,7 +25,7 @@ function normalizeVehicle(row: VehicleRow, galleryUrls: string[]): Vehicle {
     description: row.description,
     overview: row.overview,
     features: row.features ?? [],
-    healthCheck: (row.health_check ?? {}) as Vehicle["healthCheck"],
+    healthCheck: (row.health_check ?? {}) as VehicleType["healthCheck"],
     imageUrl: row.image_url,
     galleryUrls,
     status: row.status,
@@ -60,7 +60,7 @@ async function loadGallery(
   return galleryByVehicle;
 }
 
-export async function getCars(): Promise<Vehicle[]> {
+export async function getCars(): Promise<VehicleType[]> {
   const supabase = createSupabasePublicClient();
   const { data, error } = await supabase
     .from("KingsOfCars_vehicles")
@@ -86,7 +86,9 @@ export async function getCars(): Promise<Vehicle[]> {
   );
 }
 
-export async function getCarBySlug(slug: string): Promise<Vehicle | undefined> {
+export async function getCarBySlug(
+  slug: string,
+): Promise<VehicleType | undefined> {
   const supabase = createSupabasePublicClient();
   const { data, error } = await supabase
     .from("KingsOfCars_vehicles")

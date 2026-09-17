@@ -52,7 +52,7 @@ export const vehicleSchema = z.object({
   updatedAt: z.string(),
 });
 
-export type Vehicle = z.infer<typeof vehicleSchema>;
+export type VehicleType = z.infer<typeof vehicleSchema>;
 
 export type CarInput = z.infer<typeof carInputSchema>;
 export type CarStatus = z.infer<typeof carStatusSchema>;

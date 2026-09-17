@@ -12,4 +12,3 @@ export const revalidationPayloadSchema = z.object({
 });
 
 export type RevalidationPayload = z.infer<typeof revalidationPayloadSchema>;
-export type RevalidationRequest = RevalidationPayload;
