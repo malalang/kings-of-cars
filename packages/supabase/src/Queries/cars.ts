@@ -1,10 +1,10 @@
-import type { VehicleType } from "@kings-of-cars/contracts/car";
+import type { CarType } from "@kings-of-cars/contracts/car";
 import { createSupabasePublicClient } from "../server";
 import type { Database } from "../supabaseType";
 
-type VehicleRow = Database["public"]["Tables"]["KingsOfCars_vehicles"]["Row"];
+type CarRow = Database["public"]["Tables"]["KingsOfCars_vehicles"]["Row"];
 
-function normalizeVehicle(row: VehicleRow, galleryUrls: string[]): VehicleType {
+function normalizeCar(row: CarRow, galleryUrls: string[]): CarType {
   return {
     id: row.id,
     stockNumber: row.stock_number,
@@ -25,7 +25,7 @@ function normalizeVehicle(row: VehicleRow, galleryUrls: string[]): VehicleType {
     description: row.description,
     overview: row.overview,
     features: row.features ?? [],
-    healthCheck: (row.health_check ?? {}) as VehicleType["healthCheck"],
+    healthCheck: (row.health_check ?? {}) as CarType["healthCheck"],
     imageUrl: row.image_url,
     galleryUrls,
     status: row.status,
@@ -38,29 +38,29 @@ function normalizeVehicle(row: VehicleRow, galleryUrls: string[]): VehicleType {
 
 async function loadGallery(
   supabase: ReturnType<typeof createSupabasePublicClient>,
-  vehicleIds: string[],
+  carIds: string[],
 ) {
   const { data, error } = await supabase
     .from("KingsOfCars_vehicle_images")
     .select("vehicle_id, image_url")
-    .in("vehicle_id", vehicleIds)
+    .in("vehicle_id", carIds)
     .order("sort_order", { ascending: true });
 
   if (error) {
     throw new Error(`Unable to load vehicle images: ${error.message}`);
   }
 
-  const galleryByVehicle = new Map<string, string[]>();
+  const galleryByCar = new Map<string, string[]>();
   for (const image of data ?? []) {
     if (!image.vehicle_id || !image.image_url) continue;
-    const current = galleryByVehicle.get(image.vehicle_id) ?? [];
+    const current = galleryByCar.get(image.vehicle_id) ?? [];
     current.push(image.image_url);
-    galleryByVehicle.set(image.vehicle_id, current);
+    galleryByCar.set(image.vehicle_id, current);
   }
-  return galleryByVehicle;
+  return galleryByCar;
 }
 
-export async function getCars(): Promise<VehicleType[]> {
+export async function getCars(): Promise<CarType[]> {
   const supabase = createSupabasePublicClient();
   const { data, error } = await supabase
     .from("KingsOfCars_vehicles")
@@ -74,21 +74,17 @@ export async function getCars(): Promise<VehicleType[]> {
   }
 
   const rows = data ?? [];
-  const galleryByVehicle = rows.length
+  const galleryByCar = rows.length
     ? await loadGallery(
         supabase,
         rows.map((row) => row.id),
       )
     : new Map<string, string[]>();
 
-  return rows.map((row) =>
-    normalizeVehicle(row, galleryByVehicle.get(row.id) ?? []),
-  );
+  return rows.map((row) => normalizeCar(row, galleryByCar.get(row.id) ?? []));
 }
 
-export async function getCarBySlug(
-  slug: string,
-): Promise<VehicleType | undefined> {
+export async function getCarBySlug(slug: string): Promise<CarType | undefined> {
   const supabase = createSupabasePublicClient();
   const { data, error } = await supabase
     .from("KingsOfCars_vehicles")
@@ -102,6 +98,6 @@ export async function getCarBySlug(
   }
 
   if (!data) return undefined;
-  const galleryByVehicle = await loadGallery(supabase, [data.id]);
-  return normalizeVehicle(data, galleryByVehicle.get(data.id) ?? []);
+  const galleryByCar = await loadGallery(supabase, [data.id]);
+  return normalizeCar(data, galleryByCar.get(data.id) ?? []);
 }

@@ -22,7 +22,7 @@ export const carInputSchema = z.object({
   status: carStatusSchema.default("draft"),
 });
 
-export const vehicleSchema = z.object({
+export const carSchema = z.object({
   id: z.string().uuid(),
   stockNumber: z.string().nullable().optional(),
   slug: z.string(),
@@ -52,7 +52,7 @@ export const vehicleSchema = z.object({
   updatedAt: z.string(),
 });
 
-export type VehicleType = z.infer<typeof vehicleSchema>;
+export type CarType = z.infer<typeof carSchema>;
 
 export type CarInput = z.infer<typeof carInputSchema>;
 export type CarStatus = z.infer<typeof carStatusSchema>;
