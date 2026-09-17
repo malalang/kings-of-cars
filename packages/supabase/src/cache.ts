@@ -3,7 +3,6 @@ import type { RevalidationRequest } from "@kings-of-cars/contracts/revalidation"
 export const CACHE_TAGS = {
   cars: "cars",
   car: (id: string) => `car:${id}`,
-  articles: "articles",
 } as const;
 
 export const CACHE_PATHS = {

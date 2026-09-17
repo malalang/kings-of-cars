@@ -1,6 +1,9 @@
 import type { LeadInput } from "@kings-of-cars/contracts/lead";
 import { createSupabasePublicClient } from "../server";
 
+// Public-facing insert for the sell-your-car enquiry form on the client
+// website. Auth is intentionally omitted because this is an unauthenticated
+// public lead submission from apps/client/app/sell-your-car.
 export async function submitLead(input: LeadInput) {
   const supabase = createSupabasePublicClient();
   const { data, error } = await supabase

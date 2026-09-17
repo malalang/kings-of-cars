@@ -6,6 +6,9 @@
     "./actionResult": "./src/actionResult.ts",
     "./business": "./src/business.ts",
     "./car": "./src/car.ts",
+    "./service": "./src/service.ts",
+    "./gallery": "./src/gallery.ts",
+    "./contact": "./src/contact.ts",
     "./env": "./src/env.ts",
     "./lead": "./src/lead.ts",
     "./revalidation": "./src/revalidation.ts"
