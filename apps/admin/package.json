@@ -10,7 +10,7 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf .next"
+    "clean": "node -e \"require('node:fs').rmSync('.next',{recursive:true,force:true})\""
   },
   "dependencies": {
     "lucide-react": "catalog:",

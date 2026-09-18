@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf .next"
+    "clean": "node -e \"require('node:fs').rmSync('.next',{recursive:true,force:true})\""
   },
   "dependencies": {
     "@kings-of-cars/contracts": "workspace:*",
