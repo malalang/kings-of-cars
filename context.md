@@ -1,45 +1,39 @@
 This file is a merged representation of the entire codebase, combined into a single document by Repomix.
 
-<file_summary>
-This section contains a summary of this file.
+# File Summary
 
-<purpose>
+## Purpose
 This file contains a packed representation of the entire repository's contents.
 It is designed to be easily consumable by AI systems for analysis, code review,
 or other automated processes.
-</purpose>
 
-<file_format>
+## File Format
 The content is organized as follows:
 1. This summary section
 2. Repository information
 3. Directory structure
 4. Repository files (if enabled)
 5. Multiple file entries, each consisting of:
-  - File path as an attribute
-  - Full contents of the file
-</file_format>
+  a. A header with the file path (## File: path/to/file)
+  b. The full contents of the file in a code block
 
-<usage_guidelines>
+## Usage Guidelines
 - This file should be treated as read-only. Any changes should be made to the
   original repository files, not this packed version.
 - When processing this file, use the file path to distinguish
   between different files in the repository.
 - Be aware that this file may contain sensitive information. Handle it with
   the same level of security as you would the original repository.
-</usage_guidelines>
 
-<notes>
+## Notes
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
 - Files matching patterns in .gitignore are excluded
 - Files matching default ignore patterns are excluded
 - Files are sorted by Git change count (files with more changes are at the bottom)
-</notes>
 
-</file_summary>
-
-<directory_structure>
+# Directory Structure
+```
 .github/workflows/sync-kings-of-cars.yml
 .github/workflows/sync-live-pages-once.yml
 .gitignore
@@ -108,7 +102,6 @@ packages/supabase/sql/001_kings_of_cars_schema.sql
 packages/supabase/src/auth.ts
 packages/supabase/src/cache.ts
 packages/supabase/src/client.ts
-packages/supabase/src/middleware.ts
 packages/supabase/src/Mutations/leads.ts
 packages/supabase/src/Queries/cars.ts
 packages/supabase/src/server.ts
@@ -125,19 +118,20 @@ scripts/sync-kings-of-cars-live-pages.mjs
 scripts/sync-kings-of-cars-v2.mjs
 scripts/verify-kings-of-cars-inventory.mjs
 turbo.json
-</directory_structure>
+```
 
-<files>
-This section contains the contents of the repository's files.
+# Files
 
-<file path="apps/admin/next-env.d.ts">
+## File: apps/admin/next-env.d.ts
+````typescript
 /// <reference types="next" />
 /// <reference types="next/image-types/global" />
 
 // NOTE: This file should not be edited
-</file>
+````
 
-<file path="docs/ARCHITECTURE.md">
+## File: docs/ARCHITECTURE.md
+````markdown
 # King of Cars Architecture
 
 ## Purpose
@@ -370,9 +364,10 @@ Motoring News
 ```
 
 The new application may improve the UX while preserving these core dealership journeys.
-</file>
+````
 
-<file path="packages/supabase/sql/001_kings_of_cars_schema.sql">
+## File: packages/supabase/sql/001_kings_of_cars_schema.sql
+````sql
 -- King of Cars schema for Supabase project: srlnoxhqudgvskntekze (phb)
 -- Canonical table naming requested for this product: KingsOfCars_*
 
@@ -447,9 +442,10 @@ create policy "KingsOfCars public read testimonials" on public."KingsOfCars_test
 create policy "KingsOfCars public read branches" on public."KingsOfCars_branches" for select to anon, authenticated using (active = true);
 create policy "KingsOfCars public submit leads" on public."KingsOfCars_leads" for insert to anon, authenticated with check (source = 'website');
 create policy "KingsOfCars public submit finance" on public."KingsOfCars_finance_applications" for insert to anon, authenticated with check (true);
-</file>
+````
 
-<file path="README.md">
+## File: README.md
+````markdown
 # King of Cars
 
 A production-oriented dealership platform built as an independent Malalang-managed monorepo, using Next.js, Supabase and Vercel.
@@ -489,9 +485,10 @@ The public King of Cars website is used as the customer-experience and informati
 https://www.kingofcars.co.za/
 
 The implementation is an independent application and does not copy proprietary site code or content wholesale.
-</file>
+````
 
-<file path=".github/workflows/sync-live-pages-once.yml">
+## File: .github/workflows/sync-live-pages-once.yml
+````yaml
 name: One-time King of Cars live-page enrichment
 
 on:
@@ -549,9 +546,10 @@ jobs:
           console.log(JSON.stringify({ available: rows.length, missing }, null, 2))
           if (missing.fuel_type || missing.transmission || missing.body_type || missing.source_url) process.exit(1)
           NODE
-</file>
+````
 
-<file path=".gitignore">
+## File: .gitignore
+````
 node_modules/
 .next/
 .turbo/
@@ -563,14 +561,16 @@ coverage/
 *.log
 .env*
 !.env.example
-</file>
+````
 
-<file path="apps/admin/.gitignore">
+## File: apps/admin/.gitignore
+````
 .vercel
 .env*
-</file>
+````
 
-<file path="apps/admin/app/globals.css">
+## File: apps/admin/app/globals.css
+````css
 :root {
   --red: #b10f1b;
   --ink: #18212b;
@@ -689,9 +689,10 @@ a {
     grid-template-columns: 1fr;
   }
 }
-</file>
+````
 
-<file path="apps/admin/app/layout.tsx">
+## File: apps/admin/app/layout.tsx
+````typescript
 import "./globals.css";
 
 export const metadata = { title: "King of Cars Admin" };
@@ -705,9 +706,10 @@ export default function RootLayout({
     </html>
   );
 }
-</file>
+````
 
-<file path="apps/admin/app/page.tsx">
+## File: apps/admin/app/page.tsx
+````typescript
 import {
   ArrowRight,
   CarFront,
@@ -792,16 +794,18 @@ export default function AdminHome() {
     </main>
   );
 }
-</file>
+````
 
-<file path="apps/admin/next.config.ts">
+## File: apps/admin/next.config.ts
+````typescript
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = { reactStrictMode: true };
 export default nextConfig;
-</file>
+````
 
-<file path="apps/admin/tsconfig.json">
+## File: apps/admin/tsconfig.json
+````json
 {
   "compilerOptions": {
     "target": "ES2017",
@@ -822,14 +826,16 @@ export default nextConfig;
   "include": ["next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }
-</file>
+````
 
-<file path="apps/client/.gitignore">
+## File: apps/client/.gitignore
+````
 .vercel
 .env*
-</file>
+````
 
-<file path="apps/client/app/_lib/cached-public-data.ts">
+## File: apps/client/app/_lib/cached-public-data.ts
+````typescript
 import { CACHE_TAGS } from "@kings-of-cars/supabase/cache";
 import { getCarBySlug, getCars } from "@kings-of-cars/supabase/Queries/cars";
 import { unstable_cache } from "next/cache";
@@ -843,9 +849,10 @@ export const getCachedCarBySlug = async (slug: string) =>
   unstable_cache(async () => getCarBySlug(slug), [`car-${slug}`], {
     tags: [CACHE_TAGS.cars],
   })();
-</file>
+````
 
-<file path="apps/client/app/actions.ts">
+## File: apps/client/app/actions.ts
+````typescript
 "use server";
 
 import type { ActionResult } from "@kings-of-cars/contracts/actionResult";
@@ -887,9 +894,10 @@ export async function submitEnquiry(formData: FormData): Promise<ActionResult> {
       "Thanks! We have received your enquiry and will be in touch shortly.",
   };
 }
-</file>
+````
 
-<file path="apps/client/app/api/revalidate/route.ts">
+## File: apps/client/app/api/revalidate/route.ts
+````typescript
 import { revalidationPayloadSchema } from "@kings-of-cars/contracts/revalidation";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
@@ -924,9 +932,10 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ revalidated: true, now: Date.now() });
 }
-</file>
+````
 
-<file path="apps/client/app/articles/page.tsx">
+## File: apps/client/app/articles/page.tsx
+````typescript
 import Link from "next/link";
 export default function ArticlesPage() {
   return (
@@ -967,9 +976,10 @@ export default function ArticlesPage() {
     </main>
   );
 }
-</file>
+````
 
-<file path="apps/client/app/cars.css">
+## File: apps/client/app/cars.css
+````css
 /* Scoped source-site visual contract for /cars. Kept separate so the existing site CSS remains intact. */
 .koc-legacy-header {
   position: relative;
@@ -1570,9 +1580,10 @@ export default function ArticlesPage() {
     min-width: 90px;
   }
 }
-</file>
+````
 
-<file path="apps/client/app/contact/page.tsx">
+## File: apps/client/app/contact/page.tsx
+````typescript
 import Link from "next/link";
 export default function ContactPage() {
   return (
@@ -1613,9 +1624,10 @@ export default function ContactPage() {
     </main>
   );
 }
-</file>
+````
 
-<file path="apps/client/app/finance/page.tsx">
+## File: apps/client/app/finance/page.tsx
+````typescript
 import Link from "next/link";
 export default function FinancePage() {
   return (
@@ -1655,9 +1667,10 @@ export default function FinancePage() {
     </main>
   );
 }
-</file>
+````
 
-<file path="apps/client/app/globals.css">
+## File: apps/client/app/globals.css
+````css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -3146,9 +3159,10 @@ small {
   padding-right: 0;
   padding-left: 0;
 }
-</file>
+````
 
-<file path="apps/client/app/page.tsx">
+## File: apps/client/app/page.tsx
+````typescript
 import { CarFront, Cog, FileText } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -3417,9 +3431,10 @@ export default function HomePage() {
     </main>
   );
 }
-</file>
+````
 
-<file path="apps/client/app/sell-your-car/page.tsx">
+## File: apps/client/app/sell-your-car/page.tsx
+````typescript
 import Link from "next/link";
 export default function SellYourCarPage() {
   return (
@@ -3459,9 +3474,10 @@ export default function SellYourCarPage() {
     </main>
   );
 }
-</file>
+````
 
-<file path="apps/client/app/value-added-products/page.tsx">
+## File: apps/client/app/value-added-products/page.tsx
+````typescript
 import Link from "next/link";
 export default function ValueAddedProductsPage() {
   return (
@@ -3502,9 +3518,10 @@ export default function ValueAddedProductsPage() {
     </main>
   );
 }
-</file>
+````
 
-<file path="apps/client/components/cars-sort.tsx">
+## File: apps/client/components/cars-sort.tsx
+````typescript
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
@@ -3535,17 +3552,19 @@ export function CarsSort({ value }: { value: string }) {
     </select>
   );
 }
-</file>
+````
 
-<file path="apps/client/next-env.d.ts">
+## File: apps/client/next-env.d.ts
+````typescript
 /// <reference types="next" />
 /// <reference types="next/image-types/global" />
 
 // NOTE: This file should not be edited
 // see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
-</file>
+````
 
-<file path="apps/client/tsconfig.json">
+## File: apps/client/tsconfig.json
+````json
 {
   "compilerOptions": {
     "target": "ES2017",
@@ -3566,9 +3585,10 @@ export function CarsSort({ value }: { value: string }) {
   "include": ["next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }
-</file>
+````
 
-<file path="packages/contracts/src/business.ts">
+## File: packages/contracts/src/business.ts
+````typescript
 export const BUSINESS_INFO = {
   brandName: "King of Cars",
   legalName: "King Of Cars Group",
@@ -3614,9 +3634,10 @@ export const BUSINESS_PHONE_LINKS = BUSINESS_INFO.phones.map((phone) => ({
 }));
 
 export const WHATSAPP_LINK = BUSINESS_INFO.whatsapp.baseUrl;
-</file>
+````
 
-<file path="packages/contracts/src/gallery.ts">
+## File: packages/contracts/src/gallery.ts
+````typescript
 import { z } from "zod";
 
 export const gallerySchema = z.object({
@@ -3627,9 +3648,10 @@ export const gallerySchema = z.object({
 });
 
 export type GalleryType = z.infer<typeof gallerySchema>;
-</file>
+````
 
-<file path="packages/contracts/src/lead.ts">
+## File: packages/contracts/src/lead.ts
+````typescript
 import { z } from "zod";
 
 export const leadStatusSchema = z.enum([
@@ -3649,9 +3671,10 @@ export const leadInputSchema = z.object({
 
 export type LeadInput = z.infer<typeof leadInputSchema>;
 export type LeadStatus = z.infer<typeof leadStatusSchema>;
-</file>
+````
 
-<file path="packages/contracts/src/service.ts">
+## File: packages/contracts/src/service.ts
+````typescript
 import { z } from "zod";
 
 export const serviceSchema = z.object({
@@ -3663,9 +3686,10 @@ export const serviceSchema = z.object({
 });
 
 export type ServiceType = z.infer<typeof serviceSchema>;
-</file>
+````
 
-<file path="packages/contracts/tsconfig.json">
+## File: packages/contracts/tsconfig.json
+````json
 {
   "compilerOptions": {
     "target": "ES2022",
@@ -3679,9 +3703,10 @@ export type ServiceType = z.infer<typeof serviceSchema>;
   },
   "include": ["src"]
 }
-</file>
+````
 
-<file path="packages/supabase/src/auth.ts">
+## File: packages/supabase/src/auth.ts
+````typescript
 import { createSupabaseServerClient } from "./server";
 
 export async function requireAdminUser() {
@@ -3703,9 +3728,10 @@ export async function requireAdminUser() {
 
   return user;
 }
-</file>
+````
 
-<file path="packages/supabase/src/client.ts">
+## File: packages/supabase/src/client.ts
+````typescript
 import { createBrowserClient } from "@supabase/ssr";
 
 export function createClient() {
@@ -3714,54 +3740,10 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 }
-</file>
+````
 
-<file path="packages/supabase/src/middleware.ts">
-import { createServerClient } from "@supabase/ssr";
-import { type NextRequest, NextResponse } from "next/server";
-import type { Database } from "./supabaseType";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-export const createClient = (request: NextRequest) => {
-  let supabaseResponse = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  });
-
-  const nextResponse = createServerClient<Database>(
-    supabaseUrl!,
-    supabaseKey!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value),
-          );
-          supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options),
-          );
-        },
-      },
-    },
-  );
-
-  void nextResponse;
-  return supabaseResponse;
-};
-
-export async function updateSession(request: NextRequest) {
-  return createClient(request);
-}
-</file>
-
-<file path="packages/supabase/src/server.ts">
+## File: packages/supabase/src/server.ts
+````typescript
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
@@ -3811,9 +3793,10 @@ export function createSupabasePublicClient() {
     },
   });
 }
-</file>
+````
 
-<file path="packages/supabase/src/supabaseType.ts">
+## File: packages/supabase/src/supabaseType.ts
+````typescript
 export type Json =
   | string
   | number
@@ -4062,9 +4045,10 @@ export type Database = {
     };
   };
 };
-</file>
+````
 
-<file path="packages/supabase/tsconfig.json">
+## File: packages/supabase/tsconfig.json
+````json
 {
   "compilerOptions": {
     "target": "ES2022",
@@ -4078,31 +4062,10 @@ export type Database = {
   },
   "include": ["src"]
 }
-</file>
+````
 
-<file path="pnpm-workspace.yaml">
-packages:
-  - "apps/*"
-  - "packages/*"
-
-catalog:
-  next: "16.2.7"
-  react: "19.2.4"
-  react-dom: "19.2.4"
-  typescript: "5.9.3"
-  lucide-react: "^1.17.0"
-  zod: "^4.4.3"
-  "@types/node": "^22.19.19"
-  "@types/react": "19.2.4"
-  "@types/react-dom": "19.2.3"
-  "@biomejs/biome": "2.2.0"
-  turbo: "^2.9.14"
-  "@supabase/supabase-js": "^2.107.0"
-  "@supabase/ssr": "^0.10.3"
-  react-icons: "^5.5.0"
-</file>
-
-<file path="apps/admin/package.json">
+## File: apps/admin/package.json
+````json
 {
   "name": "@kings-of-cars/admin",
   "version": "0.1.0",
@@ -4131,9 +4094,10 @@ catalog:
     "typescript": "catalog:"
   }
 }
-</file>
+````
 
-<file path="apps/client/app/layout.tsx">
+## File: apps/client/app/layout.tsx
+````typescript
 import type { Metadata } from "next";
 import { SiteHeader } from "../components/site-header";
 import { WhatsAppFloat } from "../components/whatsapp-float";
@@ -4159,9 +4123,10 @@ export default function RootLayout({
     </html>
   );
 }
-</file>
+````
 
-<file path="apps/client/components/enquire-form.css">
+## File: apps/client/components/enquire-form.css
+````css
 .koc-enquire-form {
   border: 1px solid #ddd;
   background: #fff;
@@ -4254,9 +4219,10 @@ export default function RootLayout({
     padding: 20px;
   }
 }
-</file>
+````
 
-<file path="apps/client/components/site-header.tsx">
+## File: apps/client/components/site-header.tsx
+````typescript
 "use client";
 
 import { BUSINESS_INFO } from "@kings-of-cars/contracts/business";
@@ -4369,9 +4335,10 @@ export function SiteHeader() {
     </header>
   );
 }
-</file>
+````
 
-<file path="apps/client/components/whatsapp-float.tsx">
+## File: apps/client/components/whatsapp-float.tsx
+````typescript
 "use client";
 
 import { BUSINESS_INFO } from "@kings-of-cars/contracts/business";
@@ -4408,9 +4375,10 @@ export function WhatsAppFloat() {
     </a>
   );
 }
-</file>
+````
 
-<file path="apps/client/next.config.ts">
+## File: apps/client/next.config.ts
+````typescript
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -4420,9 +4388,10 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-</file>
+````
 
-<file path="biome.json">
+## File: biome.json
+````json
 {
   "$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
   "vcs": {
@@ -4488,9 +4457,10 @@ export default nextConfig;
     }
   }
 }
-</file>
+````
 
-<file path="packages/contracts/src/env.ts">
+## File: packages/contracts/src/env.ts
+````typescript
 import { z } from "zod";
 
 export const envSchema = z.object({
@@ -4500,9 +4470,10 @@ export const envSchema = z.object({
 });
 
 export type Env = z.infer<typeof envSchema>;
-</file>
+````
 
-<file path="packages/contracts/src/revalidation.ts">
+## File: packages/contracts/src/revalidation.ts
+````typescript
 import { z } from "zod";
 
 export const revalidationModeSchema = z.enum(["max", "immediate"]);
@@ -4517,9 +4488,10 @@ export const revalidationPayloadSchema = z.object({
 });
 
 export type RevalidationPayload = z.infer<typeof revalidationPayloadSchema>;
-</file>
+````
 
-<file path="packages/supabase/src/Mutations/leads.ts">
+## File: packages/supabase/src/Mutations/leads.ts
+````typescript
 import type { LeadInput } from "@kings-of-cars/contracts/lead";
 import { createSupabasePublicClient } from "../server";
 
@@ -4548,9 +4520,35 @@ export async function submitLead(input: LeadInput) {
 
   return data;
 }
-</file>
+````
 
-<file path="scripts/import-kingofcars-batch.mjs">
+## File: pnpm-workspace.yaml
+````yaml
+packages:
+  - "apps/*"
+  - "packages/*"
+
+catalog:
+  next: "16.2.7"
+  react: "19.2.4"
+  react-dom: "19.2.4"
+  typescript: "5.9.3"
+  lucide-react: "^1.17.0"
+  zod: "^4.4.3"
+  "@types/node": "^22.19.19"
+  "@types/react": "19.2.4"
+  "@types/react-dom": "19.2.3"
+  "@biomejs/biome": "2.2.0"
+  turbo: "^2.9.14"
+  "@supabase/supabase-js": "^2.107.0"
+  "@supabase/ssr": "^0.10.3"
+  react-icons: "^5.5.0"
+  playwright: "1.55.0"
+  "@sparticuz/chromium": "149.0.0"
+````
+
+## File: scripts/import-kingofcars-batch.mjs
+````javascript
 #!/usr/bin/env node
 
 import { createClient } from "@supabase/supabase-js";
@@ -4882,9 +4880,10 @@ main().catch((e) => {
   console.error(e);
   process.exit(1);
 });
-</file>
+````
 
-<file path="scripts/normalize-kingofcars-poa.mjs">
+## File: scripts/normalize-kingofcars-poa.mjs
+````javascript
 #!/usr/bin/env node
 
 import { createClient } from "@supabase/supabase-js";
@@ -4915,9 +4914,10 @@ if (error)
   throw new Error(`Unable to normalize POA vehicles: ${error.message}`);
 
 console.log(`Normalized ${data?.length ?? 0} King of Cars vehicles to POA.`);
-</file>
+````
 
-<file path="scripts/seed-kingofcars-batch-1.mjs">
+## File: scripts/seed-kingofcars-batch-1.mjs
+````javascript
 #!/usr/bin/env node
 
 import { createClient } from "@supabase/supabase-js";
@@ -5138,9 +5138,10 @@ for (const car of cars) {
 }
 
 console.log(`Seeded ${cars.length} vehicles.`);
-</file>
+````
 
-<file path="scripts/verify-kings-of-cars-inventory.mjs">
+## File: scripts/verify-kings-of-cars-inventory.mjs
+````javascript
 #!/usr/bin/env node
 
 import { createClient } from "@supabase/supabase-js";
@@ -5203,9 +5204,10 @@ if ((withImages ?? 0) < 50)
 console.log(
   "VERIFIED: at least 50 King of Cars vehicles with images are present in Supabase.",
 );
-</file>
+````
 
-<file path="apps/client/components/enquire-form.tsx">
+## File: apps/client/components/enquire-form.tsx
+````typescript
 "use client";
 
 import { CheckCircle2, Loader2, Send } from "lucide-react";
@@ -5302,9 +5304,10 @@ export function EnquireForm({ vehicleId, vehicleTitle }: Props) {
     </form>
   );
 }
-</file>
+````
 
-<file path="packages/contracts/package.json">
+## File: packages/contracts/package.json
+````json
 {
   "name": "@kings-of-cars/contracts",
   "version": "0.1.0",
@@ -5330,9 +5333,10 @@ export function EnquireForm({ vehicleId, vehicleTitle }: Props) {
     "typescript": "catalog:"
   }
 }
-</file>
+````
 
-<file path="packages/contracts/src/actionResult.ts">
+## File: packages/contracts/src/actionResult.ts
+````typescript
 import { z } from "zod";
 
 export const actionErrorSchema = z.object({
@@ -5371,9 +5375,10 @@ export type ActionResult<TData = undefined> =
       error: string;
       fieldErrors?: Record<string, string[]>;
     };
-</file>
+````
 
-<file path="packages/contracts/src/contact.ts">
+## File: packages/contracts/src/contact.ts
+````typescript
 import { z } from "zod";
 
 export const contactSchema = z.object({
@@ -5385,41 +5390,10 @@ export const contactSchema = z.object({
 });
 
 export type ContactType = z.infer<typeof contactSchema>;
-</file>
+````
 
-<file path="packages/supabase/package.json">
-{
-  "name": "@kings-of-cars/supabase",
-  "version": "0.1.0",
-  "private": true,
-  "exports": {
-    "./client": "./src/client.ts",
-    "./server": "./src/server.ts",
-    "./auth": "./src/auth.ts",
-    "./middleware": "./src/middleware.ts",
-    "./cache": "./src/cache.ts",
-    "./supabaseType": "./src/supabaseType.ts",
-    "./Queries/cars": "./src/Queries/cars.ts",
-    "./Mutations/leads": "./src/Mutations/leads.ts"
-  },
-  "scripts": {
-    "supabase:types": "supabase gen types typescript --local > src/supabaseType.ts",
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@kings-of-cars/contracts": "workspace:*",
-    "@supabase/ssr": "catalog:",
-    "@supabase/supabase-js": "catalog:",
-    "next": "catalog:"
-  },
-  "devDependencies": {
-    "@types/node": "catalog:",
-    "typescript": "catalog:"
-  }
-}
-</file>
-
-<file path="packages/supabase/src/Queries/cars.ts">
+## File: packages/supabase/src/Queries/cars.ts
+````typescript
 import type { CarType } from "@kings-of-cars/contracts/car";
 import { createSupabasePublicClient } from "../server";
 import type { Database } from "../supabaseType";
@@ -5523,9 +5497,10 @@ export async function getCarBySlug(slug: string): Promise<CarType | undefined> {
   const galleryByCar = await loadGallery(supabase, [data.id]);
   return normalizeCar(data, galleryByCar.get(data.id) ?? []);
 }
-</file>
+````
 
-<file path="scripts/sync-kings-of-cars-live-pages.mjs">
+## File: scripts/sync-kings-of-cars-live-pages.mjs
+````javascript
 #!/usr/bin/env node
 
 import { createClient } from "@supabase/supabase-js";
@@ -5831,9 +5806,10 @@ main().catch((error) => {
   console.error("LIVE SYNC FAILED:", error);
   process.exit(1);
 });
-</file>
+````
 
-<file path="packages/contracts/src/car.ts">
+## File: packages/contracts/src/car.ts
+````typescript
 import { z } from "zod";
 
 export const carStatusSchema = z.enum([
@@ -5892,9 +5868,42 @@ export type CarType = z.infer<typeof carSchema>;
 
 export type CarInput = z.infer<typeof carInputSchema>;
 export type CarStatus = z.infer<typeof carStatusSchema>;
-</file>
+````
 
-<file path="packages/supabase/src/cache.ts">
+## File: packages/supabase/package.json
+````json
+{
+  "name": "@kings-of-cars/supabase",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    "./client": "./src/client.ts",
+    "./server": "./src/server.ts",
+    "./auth": "./src/auth.ts",
+    "./cache": "./src/cache.ts",
+    "./supabaseType": "./src/supabaseType.ts",
+    "./Queries/cars": "./src/Queries/cars.ts",
+    "./Mutations/leads": "./src/Mutations/leads.ts"
+  },
+  "scripts": {
+    "supabase:types": "supabase gen types typescript --local > src/supabaseType.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@kings-of-cars/contracts": "workspace:*",
+    "@supabase/ssr": "catalog:",
+    "@supabase/supabase-js": "catalog:",
+    "next": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}
+````
+
+## File: packages/supabase/src/cache.ts
+````typescript
 export const CACHE_TAGS = {
   cars: "cars",
   car: (id: string) => `car:${id}`,
@@ -5905,9 +5914,10 @@ export const CACHE_PATHS = {
   cars: "/cars",
   carDetail: (slug: string) => `/cars/${slug}`,
 } as const;
-</file>
+````
 
-<file path="scripts/sync-kings-of-cars-v2.mjs">
+## File: scripts/sync-kings-of-cars-v2.mjs
+````javascript
 #!/usr/bin/env node
 
 import { createClient } from "@supabase/supabase-js";
@@ -6062,9 +6072,10 @@ main().catch((error) => {
   console.error("SYNC FAILED:", error);
   process.exit(1);
 });
-</file>
+````
 
-<file path="apps/client/app/cars/[slug]/page.tsx">
+## File: apps/client/app/cars/[slug]/page.tsx
+````typescript
 import {
   Camera,
   CheckCircle2,
@@ -6372,9 +6383,10 @@ export default async function VehiclePage({
     </main>
   );
 }
-</file>
+````
 
-<file path="scripts/lib/kingofcars-engine-api.mjs">
+## File: scripts/lib/kingofcars-engine-api.mjs
+````javascript
 const API_URL =
   process.env.KINGS_OF_CARS_ENGINE_API_URL ??
   "https://engineapi.e5.ix.co.za/api/v1.0/vehiclestocksearch/filter";
@@ -6799,9 +6811,10 @@ export function mapVehicle(vehicle) {
 }
 
 export { DEALER_ID, PAGE_SIZE, API_URL };
-</file>
+````
 
-<file path="turbo.json">
+## File: turbo.json
+````json
 {
   "$schema": "https://turbo.build/schema.json",
   "globalEnv": [
@@ -6832,9 +6845,10 @@ export { DEALER_ID, PAGE_SIZE, API_URL };
     "typecheck": { "dependsOn": ["^typecheck"] }
   }
 }
-</file>
+````
 
-<file path=".github/workflows/sync-kings-of-cars.yml">
+## File: .github/workflows/sync-kings-of-cars.yml
+````yaml
 name: Sync King of Cars inventory and build
 
 on:
@@ -6880,9 +6894,563 @@ jobs:
 
       - name: Build application with synced inventory
         run: npm run build:web
-</file>
+````
 
-<file path="apps/client/components/vehicle-gallery.tsx">
+## File: apps/client/app/cars/cars-page.css
+````css
+.koc-legacy-cars-page {
+  background: #fff;
+  color: #666;
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 42px 0 58px;
+  min-height: 600px;
+}
+.koc-legacy-inner {
+  width: min(1170px, calc(100% - 30px));
+  margin: 0 auto;
+}
+.koc-legacy-title h1 {
+  font-size: 26px;
+  font-weight: 400;
+  color: #555;
+  margin: 0;
+}
+.koc-legacy-title .divider {
+  width: 72px;
+  height: 1px;
+  background: #666;
+  margin: 13px 0 21px;
+}
+.koc-legacy-cars-page > .koc-legacy-inner > p {
+  color: #777;
+  font-size: 13px;
+  line-height: 1.65;
+  margin: 0 0 12px;
+}
+.koc-legacy-cars-page a {
+  color: #720a06;
+}
+.koc-legacy-row {
+  display: grid;
+  grid-template-columns: 25% minmax(0, 75%);
+  gap: 24px;
+  margin-top: 31px;
+}
+.koc-legacy-sidebar {
+  border: 1px solid #ddd;
+  background: #f5f5f5;
+  padding: 0 14px 16px;
+}
+.koc-legacy-stock-title {
+  background: #282828;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 14px;
+  margin: 0 -14px 3px;
+}
+.koc-legacy-clear {
+  display: block;
+  text-align: right;
+  color: #777 !important;
+  font-size: 10px;
+  margin: 6px 0 10px;
+  text-decoration: underline;
+}
+.koc-legacy-search {
+  display: flex;
+  height: 34px;
+  margin-bottom: 12px;
+}
+.koc-legacy-search input {
+  min-width: 0;
+  flex: 1;
+  border: 1px solid #d2d2d2;
+  border-right: 0;
+  background: #fff;
+  padding: 0 9px;
+  font-size: 11px;
+}
+.koc-legacy-search button {
+  width: 36px;
+  border: 0;
+  background: #720a06;
+  color: #fff;
+  display: grid;
+  place-items: center;
+}
+.koc-legacy-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.koc-legacy-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.koc-legacy-filters label > span {
+  display: flex;
+  justify-content: space-between;
+  color: #777;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.koc-legacy-filters select,
+.koc-legacy-sort select {
+  width: 100%;
+  height: 32px;
+  border: 1px solid #d4d4d4;
+  background: #fff;
+  color: #666;
+  font-size: 11px;
+  padding: 0 8px;
+}
+.koc-legacy-filter-spacer {
+  visibility: hidden;
+}
+.koc-legacy-checkbox {
+  display: flex;
+  gap: 7px;
+  align-items: flex-start;
+  margin: 12px 0 11px;
+  color: #777;
+  font-size: 10px;
+}
+.koc-legacy-search-button {
+  width: 100%;
+  height: 36px;
+  border: 0;
+  background: #720a06;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.koc-legacy-results {
+  min-width: 0;
+}
+.koc-legacy-results-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #e3e3e3;
+  padding-bottom: 9px;
+}
+.koc-legacy-count {
+  font-size: 11px;
+  color: #888;
+}
+.koc-legacy-time {
+  color: #aaa;
+  font-size: 9px;
+}
+.koc-legacy-pagination {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+.koc-legacy-pagination a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 27px;
+  height: 25px;
+  padding: 0 7px;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #777;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+.koc-legacy-pagination a.active {
+  background: #720a06;
+  border-color: #720a06;
+  color: #fff;
+}
+.koc-legacy-pagination a.disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.koc-legacy-sort {
+  display: flex;
+  justify-content: flex-end;
+  margin: 10px 0;
+}
+.koc-legacy-sort select {
+  min-width: 145px;
+}
+.koc-legacy-vehicle-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.koc-legacy-vehicle-card {
+  display: grid;
+  grid-template-columns: 225px minmax(0, 1fr) 125px;
+  border: 1px solid #ddd;
+  background: #fff;
+  min-height: 190px;
+  overflow: hidden;
+}
+.koc-legacy-gallery {
+  position: relative;
+  background: #ededed;
+  height: 190px;
+  min-height: 190px;
+  overflow: hidden;
+  isolation: isolate;
+}
+.koc-legacy-gallery img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 190px;
+  object-fit: cover;
+  object-position: center;
+  transition:
+    transform 0.35s ease,
+    filter 0.35s ease;
+}
+.koc-legacy-vehicle-card:hover .koc-legacy-gallery img {
+  transform: scale(1.035);
+  filter: saturate(1.04);
+}
+.koc-legacy-gallery-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent 42%);
+  pointer-events: none;
+}
+.koc-gallery-click-target {
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: zoom-in;
+}
+.koc-legacy-gallery-count {
+  position: absolute;
+  left: 9px;
+  bottom: 9px;
+  z-index: 3;
+  padding: 6px 9px;
+  background: rgba(35, 35, 35, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.koc-legacy-no-image {
+  width: 100%;
+  height: 100%;
+  min-height: 190px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  background: #eee;
+  font-size: 10px;
+}
+.koc-legacy-no-image:before {
+  content: "IMAGE UNAVAILABLE";
+  letter-spacing: 0.08em;
+}
+.koc-legacy-vehicle-main {
+  padding: 12px 14px 11px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.koc-legacy-name {
+  font-size: 13px;
+  line-height: 1.35;
+  color: #666;
+  margin-bottom: 8px;
+}
+.koc-legacy-name strong {
+  color: #720a06;
+}
+.koc-legacy-price-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.koc-legacy-price-row strong {
+  font-size: 19px;
+  color: #720a06;
+}
+.koc-legacy-price-row span {
+  font-size: 10px;
+  color: #999;
+}
+.koc-legacy-calc {
+  margin-left: auto;
+  border: 1px solid #888;
+  background: #777;
+  color: #fff;
+  padding: 7px 10px;
+}
+.koc-legacy-spec-line {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  border-top: 1px solid #eee;
+  margin-top: 9px;
+  padding-top: 8px;
+  font-size: 10px;
+}
+.koc-legacy-location {
+  font-size: 9px;
+  color: #888;
+  margin-top: 7px;
+}
+.koc-legacy-social {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+.koc-legacy-social > span,
+.koc-legacy-social > a {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border-radius: 2px;
+  text-decoration: none;
+}
+.share-plus {
+  background: transparent !important;
+  color: #777 !important;
+}
+.share-whatsapp {
+  background: #25d366;
+}
+.share-facebook {
+  background: #1877f2;
+}
+.share-mail {
+  background: #777;
+}
+.koc-legacy-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 10px;
+}
+.koc-legacy-buttons a,
+.koc-legacy-buttons button {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #888;
+  background: #fff;
+  color: #666;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.koc-legacy-buttons .enquire,
+.koc-legacy-buttons .finance,
+.koc-legacy-buttons .compare {
+  background: #777;
+  color: #fff;
+}
+.koc-legacy-buttons .enquire {
+  background: #720a06;
+}
+.koc-legacy-spec-panel {
+  border-left: 1px solid #e1e1e1;
+  border-top: 3px solid #282828;
+  background: #f6f6f6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 6px;
+  gap: 4px;
+  font-size: 10px;
+  text-align: center;
+}
+.koc-enquire-panel {
+  grid-column: 1 / -1;
+}
+.koc-vs-empty {
+  padding: 38px 18px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+.koc-legacy-footer {
+  background: #282828;
+  color: #fff;
+  padding: 26px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  font-size: 9px;
+}
+.koc-legacy-footer a {
+  color: #ddd;
+}
+.koc-gallery-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(8, 8, 8, 0.98);
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.koc-gallery-lightbox-content {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: #080808;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.koc-gallery-lightbox-content > img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.koc-legacy-gallery-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 6;
+  transform: translateY(-50%);
+  width: 52px;
+  height: 64px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: rgba(35, 35, 35, 0.72);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+.koc-legacy-gallery-nav:hover {
+  background: #720a06;
+}
+.koc-legacy-gallery-nav.prev {
+  left: 18px;
+}
+.koc-legacy-gallery-nav.next {
+  right: 18px;
+}
+.koc-gallery-lightbox-counter {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 7;
+  padding: 7px 11px;
+  background: rgba(20, 20, 20, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.koc-gallery-lightbox-close {
+  position: fixed;
+  right: 22px;
+  top: 18px;
+  z-index: 10001;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(20, 20, 20, 0.75);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.koc-gallery-lightbox-close:hover {
+  background: #720a06;
+}
+@media (max-width: 1050px) {
+  .koc-legacy-row {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+  .koc-legacy-vehicle-card {
+    grid-template-columns: 205px minmax(0, 1fr);
+  }
+  .koc-legacy-spec-panel {
+    display: none;
+  }
+}
+@media (max-width: 800px) {
+  .koc-legacy-row {
+    display: flex;
+    flex-direction: column;
+  }
+  .koc-legacy-sidebar,
+  .koc-legacy-results {
+    width: 100%;
+  }
+  .koc-legacy-vehicle-card {
+    grid-template-columns: 175px minmax(0, 1fr);
+  }
+}
+@media (max-width: 560px) {
+  .koc-legacy-inner {
+    width: calc(100% - 28px);
+  }
+  .koc-legacy-vehicle-card {
+    display: block;
+  }
+  .koc-legacy-gallery {
+    height: 210px;
+    min-height: 210px;
+  }
+  .koc-legacy-gallery img,
+  .koc-legacy-no-image {
+    min-height: 210px;
+  }
+  .koc-legacy-buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .koc-legacy-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .koc-gallery-lightbox-close {
+    right: 12px;
+    top: 12px;
+  }
+  .koc-gallery-lightbox-content .koc-legacy-gallery-nav {
+    width: 42px;
+    height: 52px;
+  }
+  .koc-gallery-lightbox-counter {
+    bottom: 18px;
+  }
+}
+````
+
+## File: apps/client/components/vehicle-gallery.tsx
+````typescript
 "use client";
 
 import { ChevronLeft, ChevronRight, Maximize2, X } from "lucide-react";
@@ -7195,9 +7763,10 @@ export function VehicleGallery({
     </>
   );
 }
-</file>
+````
 
-<file path="apps/client/app/cars/page.tsx">
+## File: apps/client/app/cars/page.tsx
+````typescript
 import { ChevronDown, Gauge, Heart, Mail, Palette, Search } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -7730,9 +8299,10 @@ export default async function CarsPage({
     </>
   );
 }
-</file>
+````
 
-<file path="scripts/lib/kingofcars-engine-api-v2.mjs">
+## File: scripts/lib/kingofcars-engine-api-v2.mjs
+````javascript
 const API_URL =
   process.env.KINGS_OF_CARS_ENGINE_API_URL ??
   "https://engineapi.e5.ix.co.za/api/v1.0/vehiclestocksearch/filter";
@@ -8286,561 +8856,10 @@ export function getVehicleDiagnostic(vehicle) {
 }
 
 export { DEALER_ID, PAGE_SIZE, API_URL, MIN_SYNC_ROWS };
-</file>
+````
 
-<file path="apps/client/app/cars/cars-page.css">
-.koc-legacy-cars-page {
-  background: #fff;
-  color: #666;
-  font-family: Arial, Helvetica, sans-serif;
-  padding: 42px 0 58px;
-  min-height: 600px;
-}
-.koc-legacy-inner {
-  width: min(1170px, calc(100% - 30px));
-  margin: 0 auto;
-}
-.koc-legacy-title h1 {
-  font-size: 26px;
-  font-weight: 400;
-  color: #555;
-  margin: 0;
-}
-.koc-legacy-title .divider {
-  width: 72px;
-  height: 1px;
-  background: #666;
-  margin: 13px 0 21px;
-}
-.koc-legacy-cars-page > .koc-legacy-inner > p {
-  color: #777;
-  font-size: 13px;
-  line-height: 1.65;
-  margin: 0 0 12px;
-}
-.koc-legacy-cars-page a {
-  color: #720a06;
-}
-.koc-legacy-row {
-  display: grid;
-  grid-template-columns: 25% minmax(0, 75%);
-  gap: 24px;
-  margin-top: 31px;
-}
-.koc-legacy-sidebar {
-  border: 1px solid #ddd;
-  background: #f5f5f5;
-  padding: 0 14px 16px;
-}
-.koc-legacy-stock-title {
-  background: #282828;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  padding: 14px;
-  margin: 0 -14px 3px;
-}
-.koc-legacy-clear {
-  display: block;
-  text-align: right;
-  color: #777 !important;
-  font-size: 10px;
-  margin: 6px 0 10px;
-  text-decoration: underline;
-}
-.koc-legacy-search {
-  display: flex;
-  height: 34px;
-  margin-bottom: 12px;
-}
-.koc-legacy-search input {
-  min-width: 0;
-  flex: 1;
-  border: 1px solid #d2d2d2;
-  border-right: 0;
-  background: #fff;
-  padding: 0 9px;
-  font-size: 11px;
-}
-.koc-legacy-search button {
-  width: 36px;
-  border: 0;
-  background: #720a06;
-  color: #fff;
-  display: grid;
-  place-items: center;
-}
-.koc-legacy-filters {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-.koc-legacy-filters label {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.koc-legacy-filters label > span {
-  display: flex;
-  justify-content: space-between;
-  color: #777;
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-.koc-legacy-filters select,
-.koc-legacy-sort select {
-  width: 100%;
-  height: 32px;
-  border: 1px solid #d4d4d4;
-  background: #fff;
-  color: #666;
-  font-size: 11px;
-  padding: 0 8px;
-}
-.koc-legacy-filter-spacer {
-  visibility: hidden;
-}
-.koc-legacy-checkbox {
-  display: flex;
-  gap: 7px;
-  align-items: flex-start;
-  margin: 12px 0 11px;
-  color: #777;
-  font-size: 10px;
-}
-.koc-legacy-search-button {
-  width: 100%;
-  height: 36px;
-  border: 0;
-  background: #720a06;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 10px;
-  font-weight: 700;
-}
-.koc-legacy-results {
-  min-width: 0;
-}
-.koc-legacy-results-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  border-bottom: 1px solid #e3e3e3;
-  padding-bottom: 9px;
-}
-.koc-legacy-count {
-  font-size: 11px;
-  color: #888;
-}
-.koc-legacy-time {
-  color: #aaa;
-  font-size: 9px;
-}
-.koc-legacy-pagination {
-  display: flex;
-  gap: 3px;
-  flex-wrap: wrap;
-}
-.koc-legacy-pagination a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 27px;
-  height: 25px;
-  padding: 0 7px;
-  border: 1px solid #ddd;
-  background: #fff;
-  color: #777;
-  font-size: 9px;
-  text-transform: uppercase;
-}
-.koc-legacy-pagination a.active {
-  background: #720a06;
-  border-color: #720a06;
-  color: #fff;
-}
-.koc-legacy-pagination a.disabled {
-  opacity: 0.45;
-  pointer-events: none;
-}
-.koc-legacy-sort {
-  display: flex;
-  justify-content: flex-end;
-  margin: 10px 0;
-}
-.koc-legacy-sort select {
-  min-width: 145px;
-}
-.koc-legacy-vehicle-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.koc-legacy-vehicle-card {
-  display: grid;
-  grid-template-columns: 225px minmax(0, 1fr) 125px;
-  border: 1px solid #ddd;
-  background: #fff;
-  min-height: 190px;
-  overflow: hidden;
-}
-.koc-legacy-gallery {
-  position: relative;
-  background: #ededed;
-  height: 190px;
-  min-height: 190px;
-  overflow: hidden;
-  isolation: isolate;
-}
-.koc-legacy-gallery img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  min-height: 190px;
-  object-fit: cover;
-  object-position: center;
-  transition:
-    transform 0.35s ease,
-    filter 0.35s ease;
-}
-.koc-legacy-vehicle-card:hover .koc-legacy-gallery img {
-  transform: scale(1.035);
-  filter: saturate(1.04);
-}
-.koc-legacy-gallery-shade {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent 42%);
-  pointer-events: none;
-}
-.koc-gallery-click-target {
-  display: block;
-  width: 100%;
-  padding: 0;
-  margin: 0;
-  border: 0;
-  background: transparent;
-  text-align: left;
-  cursor: zoom-in;
-}
-.koc-legacy-gallery-count {
-  position: absolute;
-  left: 9px;
-  bottom: 9px;
-  z-index: 3;
-  padding: 6px 9px;
-  background: rgba(35, 35, 35, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  color: #fff;
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-}
-.koc-legacy-no-image {
-  width: 100%;
-  height: 100%;
-  min-height: 190px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #999;
-  background: #eee;
-  font-size: 10px;
-}
-.koc-legacy-no-image:before {
-  content: "IMAGE UNAVAILABLE";
-  letter-spacing: 0.08em;
-}
-.koc-legacy-vehicle-main {
-  padding: 12px 14px 11px;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.koc-legacy-name {
-  font-size: 13px;
-  line-height: 1.35;
-  color: #666;
-  margin-bottom: 8px;
-}
-.koc-legacy-name strong {
-  color: #720a06;
-}
-.koc-legacy-price-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.koc-legacy-price-row strong {
-  font-size: 19px;
-  color: #720a06;
-}
-.koc-legacy-price-row span {
-  font-size: 10px;
-  color: #999;
-}
-.koc-legacy-calc {
-  margin-left: auto;
-  border: 1px solid #888;
-  background: #777;
-  color: #fff;
-  padding: 7px 10px;
-}
-.koc-legacy-spec-line {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  border-top: 1px solid #eee;
-  margin-top: 9px;
-  padding-top: 8px;
-  font-size: 10px;
-}
-.koc-legacy-location {
-  font-size: 9px;
-  color: #888;
-  margin-top: 7px;
-}
-.koc-legacy-social {
-  display: flex;
-  gap: 4px;
-  margin-top: 8px;
-}
-.koc-legacy-social > span,
-.koc-legacy-social > a {
-  width: 20px;
-  height: 20px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  border-radius: 2px;
-  text-decoration: none;
-}
-.share-plus {
-  background: transparent !important;
-  color: #777 !important;
-}
-.share-whatsapp {
-  background: #25d366;
-}
-.share-facebook {
-  background: #1877f2;
-}
-.share-mail {
-  background: #777;
-}
-.koc-legacy-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-  margin-top: auto;
-  padding-top: 10px;
-}
-.koc-legacy-buttons a,
-.koc-legacy-buttons button {
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #888;
-  background: #fff;
-  color: #666;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  text-decoration: none;
-}
-.koc-legacy-buttons .enquire,
-.koc-legacy-buttons .finance,
-.koc-legacy-buttons .compare {
-  background: #777;
-  color: #fff;
-}
-.koc-legacy-buttons .enquire {
-  background: #720a06;
-}
-.koc-legacy-spec-panel {
-  border-left: 1px solid #e1e1e1;
-  border-top: 3px solid #282828;
-  background: #f6f6f6;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10px 6px;
-  gap: 4px;
-  font-size: 10px;
-  text-align: center;
-}
-.koc-enquire-panel {
-  grid-column: 1 / -1;
-}
-.koc-vs-empty {
-  padding: 38px 18px;
-  border: 1px solid #ddd;
-  text-align: center;
-}
-.koc-legacy-footer {
-  background: #282828;
-  color: #fff;
-  padding: 26px 15px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  font-size: 9px;
-}
-.koc-legacy-footer a {
-  color: #ddd;
-}
-.koc-gallery-lightbox {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: rgba(8, 8, 8, 0.98);
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.koc-gallery-lightbox-content {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  background: #080808;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-.koc-gallery-lightbox-content > img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-.koc-legacy-gallery-nav {
-  position: absolute;
-  top: 50%;
-  z-index: 6;
-  transform: translateY(-50%);
-  width: 52px;
-  height: 64px;
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  background: rgba(35, 35, 35, 0.72);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-}
-.koc-legacy-gallery-nav:hover {
-  background: #720a06;
-}
-.koc-legacy-gallery-nav.prev {
-  left: 18px;
-}
-.koc-legacy-gallery-nav.next {
-  right: 18px;
-}
-.koc-gallery-lightbox-counter {
-  position: absolute;
-  left: 50%;
-  bottom: 24px;
-  transform: translateX(-50%);
-  z-index: 7;
-  padding: 7px 11px;
-  background: rgba(20, 20, 20, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-}
-.koc-gallery-lightbox-close {
-  position: fixed;
-  right: 22px;
-  top: 18px;
-  z-index: 10001;
-  width: 46px;
-  height: 46px;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  background: rgba(20, 20, 20, 0.75);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-.koc-gallery-lightbox-close:hover {
-  background: #720a06;
-}
-@media (max-width: 1050px) {
-  .koc-legacy-row {
-    grid-template-columns: 240px minmax(0, 1fr);
-  }
-  .koc-legacy-vehicle-card {
-    grid-template-columns: 205px minmax(0, 1fr);
-  }
-  .koc-legacy-spec-panel {
-    display: none;
-  }
-}
-@media (max-width: 800px) {
-  .koc-legacy-row {
-    display: flex;
-    flex-direction: column;
-  }
-  .koc-legacy-sidebar,
-  .koc-legacy-results {
-    width: 100%;
-  }
-  .koc-legacy-vehicle-card {
-    grid-template-columns: 175px minmax(0, 1fr);
-  }
-}
-@media (max-width: 560px) {
-  .koc-legacy-inner {
-    width: calc(100% - 28px);
-  }
-  .koc-legacy-vehicle-card {
-    display: block;
-  }
-  .koc-legacy-gallery {
-    height: 210px;
-    min-height: 210px;
-  }
-  .koc-legacy-gallery img,
-  .koc-legacy-no-image {
-    min-height: 210px;
-  }
-  .koc-legacy-buttons {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .koc-legacy-footer {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .koc-gallery-lightbox-close {
-    right: 12px;
-    top: 12px;
-  }
-  .koc-gallery-lightbox-content .koc-legacy-gallery-nav {
-    width: 42px;
-    height: 52px;
-  }
-  .koc-gallery-lightbox-counter {
-    bottom: 18px;
-  }
-}
-</file>
-
-<file path="package.json">
+## File: package.json
+````json
 {
   "name": "kings-of-cars",
   "version": "0.1.1",
@@ -8872,15 +8891,16 @@ export { DEALER_ID, PAGE_SIZE, API_URL, MIN_SYNC_ROWS };
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
-    "@sparticuz/chromium": "149.0.0",
+    "@sparticuz/chromium": "catalog:",
     "@supabase/supabase-js": "catalog:",
-    "playwright": "1.55.0",
+    "playwright": "catalog:",
     "turbo": "catalog:"
   }
 }
-</file>
+````
 
-<file path="apps/client/package.json">
+## File: apps/client/package.json
+````json
 {
   "name": "@kings-of-cars/client",
   "version": "0.2.0",
@@ -8909,6 +8929,4 @@ export { DEALER_ID, PAGE_SIZE, API_URL, MIN_SYNC_ROWS };
     "typescript": "catalog:"
   }
 }
-</file>
-
-</files>
+````
