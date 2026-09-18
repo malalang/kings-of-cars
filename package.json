@@ -29,9 +29,9 @@
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
-    "@sparticuz/chromium": "149.0.0",
+    "@sparticuz/chromium": "catalog:",
     "@supabase/supabase-js": "catalog:",
-    "playwright": "1.55.0",
+    "playwright": "catalog:",
     "turbo": "catalog:"
   }
 }
